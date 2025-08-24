@@ -53,6 +53,11 @@
         .setting-group input[type="radio"][value="specify"]:checked ~ .specify-control-container {
             display: flex; /* Or appropriate display value */
         }
+        .color-picker-wrapper {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
         input[type="color"] {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -67,6 +72,22 @@
         input[type="color"]::-webkit-color-swatch {
             border: 1px solid #ccc;
             border-radius: 0.375rem;
+        }
+        .color-picker-wrapper.is-disabled input[type="color"] {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .color-picker-wrapper.is-disabled::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            width: 80%;
+            height: 2px;
+            background-color: rgba(220, 38, 38, 0.6); /* red-600 with opacity */
+            transform: translateY(-50%) rotate(-45deg);
+            pointer-events: none;
+            border-radius: 1px;
         }
     </style>
 </head>
@@ -172,9 +193,9 @@
                                 <div>
                                     <label class="block text-sm font-medium mt-2" data-lang="text-order">文字の順序</label>
                                     <div class="flex justify-around text-sm mt-1">
-                                        <label><input type="radio" name="text-order" value="top" checked class="save-state"> <span data-lang="order-top">上から</span></label>
+                                        <label><input type="radio" name="text-order" value="top" class="save-state"> <span data-lang="order-top">上から</span></label>
                                         <label><input type="radio" name="text-order" value="bottom" class="save-state"> <span data-lang="order-bottom">下から</span></label>
-                                        <label><input type="radio" name="text-order" value="random" class="save-state"> <span data-lang="order-random">ランダム</span></label>
+                                        <label><input type="radio" name="text-order" value="random" checked class="save-state"> <span data-lang="order-random">ランダム</span></label>
                                     </div>
                                 </div>
                                 <div class="text-sm mt-2">
@@ -193,9 +214,9 @@
                                 <div class="setting-group pt-2 border-t mt-3">
                                     <label class="block text-sm font-medium" data-lang="font-color">文字色</label>
                                     <div class="flex gap-4 text-sm mt-1 items-center">
-                                        <label><input type="radio" name="font-color-mode" value="random" class="save-state"> <span data-lang="mode-random">ランダム</span></label>
+                                        <label><input type="radio" name="font-color-mode" value="random" checked class="save-state"> <span data-lang="mode-random">ランダム</span></label>
                                         <label class="flex items-center">
-                                            <input type="radio" name="font-color-mode" value="specify" checked class="save-state"> 
+                                            <input type="radio" name="font-color-mode" value="specify" class="save-state"> 
                                             <span class="ml-1" data-lang="mode-specify">指定</span>
                                             <input type="number" id="font-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state">
                                         </label>
@@ -239,9 +260,9 @@
                                 <div class="setting-group">
                                     <label class="block text-sm font-medium" data-lang="font-stroke-color">縁取りの色</label>
                                     <div class="flex gap-4 text-sm mt-1 items-center">
-                                        <label><input type="radio" name="font-stroke-color-mode" value="random" class="save-state"> <span data-lang="mode-random">ランダム</span></label>
+                                        <label><input type="radio" name="font-stroke-color-mode" value="random" checked class="save-state"> <span data-lang="mode-random">ランダム</span></label>
                                         <label class="flex items-center">
-                                            <input type="radio" name="font-stroke-color-mode" value="specify" checked class="save-state">
+                                            <input type="radio" name="font-stroke-color-mode" value="specify" class="save-state">
                                             <span class="ml-1" data-lang="mode-specify">指定</span>
                                             <input type="number" id="font-stroke-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state">
                                         </label>
@@ -407,10 +428,16 @@
                     'unplaced-text': '{count}個の文章を配置できませんでした。',
                     'reset-settings': '設定をリセット',
                     'help-content': `
-                        <p>1. 左上のエリアにテキストファイル (.txt) をドラッグ＆ドロップします(メモ帳のファイル)。テキストファイル内の改行と改行の間の文字が文章として認識され、区切られます。</p>
-                        <p>2. 設定のアコーディオンから背景や文字のスタイル、ランダム化の設定を調整できます。</p>
-                        <p>3. 「画像を作成」ボタンを押すと、右側のフィールドに文章がランダムに配置されます。「文章を配置できませんでした」という表示が出た場合は、画面内の文章の配置を「ランダム」あるいは「ソフト」に変更するか、フォントサイズを小さくしてみてください。</p>
-                        <p>4. 「画像出力」ボタンを押してパネルを切り替え、好きなフォーマットで画像をダウンロードできます。</p>
+                        <p><b>1. テキストを用意する</b></p>
+                        <p>左上のエリアにテキストファイル (.txt) をドラッグ＆ドロップします(メモ帳のファイル)。テキストファイル内の改行と改行の間の文字が、一つの文章として認識されます。</p>
+                        <p><b>2. 設定を調整する</b></p>
+                        <p>各アコーディオンを開き、背景や文字のスタイル、ランダム化のルールを自由に調整できます。</p>
+                        <p><b>3. 画像を生成する</b></p>
+                        <p>「画像を作成」ボタンを押すと、右側のフィールドに文章がランダムに配置されます。「文章を配置できませんでした」と表示された場合は、<b>[画面内の文章の配置]</b>を「ランダム」か「ソフト」に変更するか、<b>[フォントサイズ]</b>を小さくしてみてください。</p>
+                        <p><b>4. 設定を保存・呼び出しする</b></p>
+                        <p>ヘッダーの「設定を保存」ボタンで、現在の設定をファイルとしてダウンロードできます。「設定を読込」で、そのファイルを読み込んで設定を復元できます。</p>
+                        <p><b>5. 画像を出力する</b></p>
+                        <p>「画像出力」ボタンでパネルを切り替え、好きなフォーマットで画像をダウンロードできます。</p>
                     `
                 },
                 'en': {
@@ -462,10 +489,16 @@
                     'unplaced-text': 'Could not place {count} sentences.',
                     'reset-settings': 'Reset Settings',
                     'help-content': `
-                        <p>1. Drag and drop a text file (.txt) into the area on the top left. The text between line breaks will be treated as a sentence.</p>
-                        <p>2. Open the accordions to customize the background, text styles, and randomization settings.</p>
-                        <p>3. Press the "Generate Image" button to randomly place the sentences on the canvas. If you see a "Could not place sentences" message, try changing the placement mode to "Random" or "Soft", or reduce the font size.</p>
-                        <p>4. Click the "Export Image" button to switch panels and download the image in your desired format.</p>
+                        <p><b>1. Prepare Your Text</b></p>
+                        <p>Drag and drop a text file (.txt) into the area on the top left. The text between line breaks will be treated as a single sentence.</p>
+                        <p><b>2. Adjust Settings</b></p>
+                        <p>Open the accordions to freely customize the background, text styles, and randomization rules.</p>
+                        <p><b>3. Generate the Image</b></p>
+                        <p>Press the "Generate Image" button to randomly place the sentences on the canvas. If you see a "Could not place sentences" message, try changing the <b>[Sentence Placement]</b> mode to "Random" or "Soft", or reduce the <b>[Font Size]</b>.</p>
+                        <p><b>4. Save & Load Settings</b></p>
+                        <p>You can download the current settings as a file using the "Save Settings" button in the header. Use "Load Settings" to restore them from a file.</p>
+                        <p><b>5. Export Your Image</b></p>
+                        <p>Click the "Export Image" button to switch panels and download the image in your desired format.</p>
                     `
                 }
             };
@@ -635,6 +668,10 @@
                 if (settings.textOrder === 'bottom') linesToDraw.reverse();
                 if (settings.textOrder === 'random') linesToDraw.sort(() => Math.random() - 0.5);
                 
+                // New: Sort by length descending
+                linesToDraw.sort((a, b) => b.length - a.length);
+                const maxLength = linesToDraw.length > 0 ? linesToDraw[0].length : 0;
+
                 const placedRects = [];
                 let placedLinesCount = 0;
 
@@ -652,7 +689,13 @@
                     
                     lineStyle.opacity = settings.textOpacityMode === 'random' ? Math.random() : settings.textOpacity;
 
-                    const fontSize = Math.random() * (settings.fontSizeMax - settings.fontSizeMin) + settings.fontSizeMin;
+                    // New: Bias font size based on length
+                    const lengthRatio = maxLength > 0 ? line.length / maxLength : 0;
+                    const sizeRange = settings.fontSizeMax - settings.fontSizeMin;
+                    const reduction = lengthRatio * sizeRange * 0.5; // Bias factor: 0.5
+                    const effectiveMax = Math.max(settings.fontSizeMin, settings.fontSizeMax - reduction);
+                    const fontSize = Math.random() * (effectiveMax - settings.fontSizeMin) + settings.fontSizeMin;
+
                     const isVertical = Math.random() * 100 < settings.verticalRatio;
 
                     // 位置決め
@@ -667,7 +710,6 @@
                     for (let i = 0; i < maxAttempts; i++) {
                         let currentRect, currentX, currentY;
                         
-                        // Temporarily set font to measure text
                         ctx.font = `${lineStyle.fontItalic ? 'italic ' : ''}${lineStyle.fontBold ? 'bold ' : ''} ${fontSize}px "${lineStyle.fontFamily}"`;
                         
                         let textBlock;
@@ -792,8 +834,8 @@
             }
 
             function getSettings() {
-                const fontColorPickers = document.querySelectorAll('#font-color-pickers input[type="color"]');
-                const fontStrokeColorPickers = document.querySelectorAll('#font-stroke-color-pickers input[type="color"]');
+                const fontColorPickers = document.querySelectorAll('#font-color-pickers input[type="color"]:not(:disabled)');
+                const fontStrokeColorPickers = document.querySelectorAll('#font-stroke-color-pickers input[type="color"]:not(:disabled)');
                 return {
                     width: parseInt(document.getElementById('canvas-width').value, 10),
                     height: parseInt(document.getElementById('canvas-height').value, 10),
@@ -930,24 +972,41 @@
             function setupColorPickers(type) {
                 const countInput = document.getElementById(`${type}-color-count`);
                 const modeRadios = document.querySelectorAll(`input[name="${type}-color-mode"]`);
+                const container = document.getElementById(`${type}-color-pickers`);
+                const defaultColors = type === 'font' ? ['#000000', '#FF0000', '#0000FF', '#008000', '#FFFF00'] : ['#FFFFFF', '#000000', '#FF0000', '#0000FF', '#008000'];
 
-                function update() {
-                    const container = document.getElementById(`${type}-color-pickers`);
-                    const count = parseInt(countInput.value, 10);
-                    container.innerHTML = '';
-                    const defaultColors = type === 'font' ? ['#000000', '#FF0000', '#0000FF', '#008000', '#FFFF00'] : ['#FFFFFF', '#000000', '#FF0000', '#0000FF', '#008000'];
-                    for (let i = 0; i < count; i++) {
-                        const colorInput = document.createElement('input');
-                        colorInput.type = 'color';
-                        colorInput.value = defaultColors[i] || defaultColors[0];
-                        colorInput.classList.add('save-state');
-                        colorInput.id = `${type}-color-${i}`;
-                        container.appendChild(colorInput);
-                    }
-                    addSaveStateListeners();
+                // Create 5 pickers initially and permanently
+                for (let i = 0; i < 5; i++) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'color-picker-wrapper relative';
+                    const colorInput = document.createElement('input');
+                    colorInput.type = 'color';
+                    colorInput.value = defaultColors[i] || defaultColors[0];
+                    colorInput.classList.add('save-state');
+                    colorInput.id = `${type}-color-${i}`;
+                    wrapper.appendChild(colorInput);
+                    container.appendChild(wrapper);
                 }
 
-                countInput.addEventListener('input', update);
+                function updatePickerStates() {
+                    const count = parseInt(countInput.value, 10);
+                    const wrappers = container.querySelectorAll('.color-picker-wrapper');
+                    wrappers.forEach((wrapper, i) => {
+                        const picker = wrapper.querySelector('input[type="color"]');
+                        if (i >= count) {
+                            picker.disabled = true;
+                            wrapper.classList.add('is-disabled');
+                        } else {
+                            picker.disabled = false;
+                            wrapper.classList.remove('is-disabled');
+                        }
+                    });
+                }
+
+                countInput.addEventListener('input', () => {
+                    updatePickerStates();
+                    saveStateToLocalStorage();
+                });
                 modeRadios.forEach(radio => radio.addEventListener('change', () => {
                    const container = document.getElementById(`${type}-color-pickers`);
                    const countEl = document.getElementById(`${type}-color-count`);
@@ -959,7 +1018,10 @@
                        countEl.style.display = 'none';
                    }
                 }));
-                update();
+                
+                // Make updatePickerStates accessible for loadSettings
+                container.updateStates = updatePickerStates;
+                updatePickerStates(); // Initial state
             }
             
             const settingsKey = 'randomTextPlacerSettings';
@@ -985,6 +1047,7 @@
             }
 
             function applySettings(settings) {
+                 // Apply all other settings
                  Object.keys(settings).forEach(key => {
                     if (key === 'fontColorPickers' || key === 'fontStrokeColorPickers') return;
                     
@@ -1004,41 +1067,47 @@
                             radioGroup.forEach(radio => {
                                 if (radio.value === settings[key]) {
                                     radio.checked = true;
-                                    radio.dispatchEvent(new Event('change'));
                                 }
                             });
                         }
                     }
                 });
                 
-                if(settings.fontColorCount) {
-                    const countInput = document.getElementById('font-color-count');
-                    countInput.value = settings.fontColorCount;
-                    countInput.dispatchEvent(new Event('input')); 
+                // Now that pickers exist, set their values
+                if (settings.fontColorPickers) {
                     const pickers = document.querySelectorAll('#font-color-pickers input');
                     settings.fontColorPickers.forEach((color, i) => {
                         if(pickers[i]) pickers[i].value = color;
                     });
                 }
-                if(settings.fontStrokeColorCount) {
-                    const countInput = document.getElementById('font-stroke-color-count');
-                    countInput.value = settings.fontStrokeColorCount;
-                    countInput.dispatchEvent(new Event('input')); 
+                 if (settings.fontStrokeColorPickers) {
                     const pickers = document.querySelectorAll('#font-stroke-color-pickers input');
                     settings.fontStrokeColorPickers.forEach((color, i) => {
                         if(pickers[i]) pickers[i].value = color;
                     });
                 }
+                
+                // Manually trigger events to update UI state
+                document.getElementById('font-color-pickers').updateStates();
+                document.getElementById('font-stroke-color-pickers').updateStates();
+                document.querySelectorAll('input[name="font-color-mode"], input[name="font-stroke-color-mode"], input[name="text-opacity-mode"]').forEach(radio => {
+                    if (radio.checked) {
+                        radio.dispatchEvent(new Event('change'));
+                    }
+                });
             }
 
             function loadStateFromLocalStorage() {
                 const savedSettings = localStorage.getItem(settingsKey);
-                if (!savedSettings) return;
-                applySettings(JSON.parse(savedSettings));
+                if (savedSettings) {
+                    applySettings(JSON.parse(savedSettings));
+                }
             }
             
             function addSaveStateListeners() {
                 document.querySelectorAll('.save-state').forEach(el => {
+                    el.removeEventListener('change', saveStateToLocalStorage); // Avoid duplicate listeners
+                    el.removeEventListener('input', saveStateToLocalStorage);
                     el.addEventListener('change', saveStateToLocalStorage);
                     if (el.type === 'range' || el.type === 'number') {
                         el.addEventListener('input', saveStateToLocalStorage);
@@ -1061,14 +1130,12 @@
                     }
                     // Reset radios
                     if(el.name === 'text-opacity-mode') if(el.value === 'specify') el.checked = true;
-                    if(el.name === 'text-order') if(el.value === 'top') el.checked = true;
+                    if(el.name === 'text-order') if(el.value === 'random') el.checked = true;
                     if(el.name === 'text-placement') if(el.value === 'soft-avoid') el.checked = true;
-                    if(el.name === 'font-color-mode') if(el.value === 'specify') el.checked = true;
+                    if(el.name === 'font-color-mode') if(el.value === 'random') el.checked = true;
                     if(el.name === 'font-bold-mode' || el.name === 'font-italic-mode' || el.name === 'font-shadow-mode' || el.name === 'font-stroke-mode') if(el.value === 'random') el.checked = true;
-                    if(el.name === 'font-stroke-color-mode') if(el.value === 'specify') el.checked = true;
+                    if(el.name === 'font-stroke-color-mode') if(el.value === 'random') el.checked = true;
                 });
-                setupColorPickers('font');
-                setupColorPickers('font-stroke');
                 saveStateToLocalStorage();
                 generateAndRedraw();
             }
