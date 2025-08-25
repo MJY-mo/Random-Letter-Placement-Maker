@@ -137,7 +137,7 @@
     <div class="flex-grow flex p-4 gap-4 overflow-hidden">
 
         <!-- 左パネル -->
-        <div class="w-full md:w-1/3 max-w-md flex-shrink-0 overflow-y-auto bg-white p-4 rounded-lg shadow-lg">
+        <div class="w-full md:w-1/3 max-w-lg flex-shrink-0 overflow-y-auto bg-white p-4 rounded-lg shadow-lg">
             
             <!-- 設定パネル (デフォルト) -->
             <div id="settings-panel">
@@ -165,9 +165,15 @@
                                         <input type="number" id="canvas-height" value="600" class="w-full p-1 border rounded-md realtime-update save-state">
                                     </div>
                                 </div>
-                                <div>
+                                <div class="setting-group">
                                     <label class="block text-sm font-medium" data-lang="bg-color">背景色</label>
-                                    <input type="color" id="bg-color" value="#ffffff" class="w-full h-8 border rounded-md realtime-update save-state">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <input type="color" id="bg-color" value="#ffffff" class="w-24 h-8 border rounded-md realtime-update save-state">
+                                        <label class="flex items-center text-sm flex-grow">
+                                            <input type="checkbox" id="transparent-bg" class="mr-2 save-state" checked>
+                                            <span data-lang="transparent-bg">背景を透過 (PNG出力時)</span>
+                                        </label>
+                                    </div>
                                 </div>
                                 <div>
                                     <div id="bg-image-drop-area" class="drop-area w-full h-20 rounded-lg flex items-center justify-center text-center text-gray-500 mt-2 mb-1 cursor-pointer p-2">
@@ -204,6 +210,14 @@
                                         <span id="font-size-max-val" class="text-xs w-8 text-center">48</span>
                                     </div>
                                 </div>
+                                <div class="setting-group">
+                                    <label class="block text-sm font-medium" data-lang="text-opacity">文字の透過度</label>
+                                    <div class="flex gap-4 text-sm mt-1">
+                                        <label><input type="radio" name="text-opacity-mode" value="specify" checked class="save-state"> <span data-lang="mode-specify">指定</span></label>
+                                        <label><input type="radio" name="text-opacity-mode" value="random" class="save-state"> <span data-lang="mode-random">ランダム</span></label>
+                                    </div>
+                                    <input type="range" id="text-opacity" min="0" max="1" step="0.05" value="1" class="w-full mt-1 save-state realtime-update">
+                                </div>
                                 <div>
                                     <label class="block text-sm font-medium" data-lang="writing-mode">縦書きの比率</label>
                                     <input type="range" id="vertical-ratio" min="0" max="100" value="50" class="w-full mt-1 save-state">
@@ -220,8 +234,8 @@
                                     <label class="block text-sm font-medium" data-lang="text-placement">画面内の配置</label>
                                      <div class="flex justify-around text-sm mt-1">
                                         <label><input type="radio" name="text-placement" value="random" class="save-state"> <span data-lang="placement-random">ランダム</span></label>
-                                        <label><input type="radio" name="text-placement" value="soft-avoid" class="save-state"> <span data-lang="placement-soft">ソフト</span></label>
-                                        <label><input type="radio" name="text-placement" value="avoid-overlap" checked class="save-state"> <span data-lang="placement-avoid">重複を避ける</span></label>
+                                        <label><input type="radio" name="text-placement" value="soft-avoid" checked class="save-state"> <span data-lang="placement-soft">ソフト</span></label>
+                                        <label><input type="radio" name="text-placement" value="avoid-overlap" class="save-state"> <span data-lang="placement-avoid">重複を避ける</span></label>
                                     </div>
                                 </div>
 
@@ -233,7 +247,7 @@
                                         <label class="flex items-center">
                                             <input type="radio" name="font-color-mode" value="specify" class="save-state"> 
                                             <span class="ml-1" data-lang="mode-specify">指定</span>
-                                            <input type="number" id="font-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state" style="display: none;">
+                                            <input type="number" id="font-color-count" value="1" min="1" max="7" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state" style="display: none;">
                                         </label>
                                     </div>
                                     <div id="font-color-pickers" class="flex gap-2 mt-2 flex-wrap"></div>
@@ -266,11 +280,12 @@
                                         <label class="flex items-center">
                                             <input type="radio" name="font-stroke-color-mode" value="specify" class="save-state">
                                             <span class="ml-1" data-lang="mode-specify">指定</span>
-                                            <input type="number" id="font-stroke-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state" style="display: none;">
+                                            <input type="number" id="font-stroke-color-count" value="1" min="1" max="7" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state" style="display: none;">
                                         </label>
                                     </div>
                                     <div id="font-stroke-color-pickers" class="flex gap-2 mt-2 flex-wrap"></div>
                                 </div>
+                                <button id="reset-random-settings" class="btn bg-orange-500 text-white w-full py-1.5 rounded-md text-sm mt-4 hover:bg-orange-600" data-lang="reset-settings">設定をリセット</button>
                             </div>
                         </div>
                     </div>
@@ -359,6 +374,7 @@
             const textEditorContainer = document.getElementById('text-editor-container');
             const textEditor = document.getElementById('text-editor');
             const textEditorOkBtn = document.getElementById('text-editor-ok');
+            const resetRandomSettingsBtn = document.getElementById('reset-random-settings');
 
             // --- 状態管理 ---
             let textLines = [];
@@ -387,17 +403,17 @@
                     'text-drop-area': 'テキストファイル(.txt)をここにドロップ<br>またはクリックして選択',
                     'delete-text': 'テキストを削除', 'delete-bg-image': '背景画像を削除', 'generate-btn': '作成',
                     'accordion-field': 'フィールド設定', 'accordion-font': 'フォント設定', 'canvas-size': '画面サイズ',
-                    'bg-color': '背景色', 'bg-image-drop-area': '背景画像をドロップ',
+                    'bg-color': '背景色', 'transparent-bg': '背景を透過 (PNG出力時)', 'bg-image-drop-area': '背景画像をドロップ',
                     'bg-opacity': '背景画像の透過度', 'bg-scale': '背景画像の拡大縮小',
                     'accordion-random': 'ランダム処理の設定', 'mode-specify': '指定', 'mode-random': 'ランダム',
                     'mode-random-short': 'R', 'font-color': '文字色', 'font-bold': '太字', 'font-italic': '斜体',
                     'font-shadow': '影', 'font-stroke': '縁取り', 'font-stroke-color': '縁取りの色',
-                    'font-size': 'フォントサイズ (最小 - 最大)', 'writing-mode': '縦書きの比率',
+                    'font-size': 'フォントサイズ (最小 - 最大)', 'text-opacity': '文字の透過度', 'writing-mode': '縦書きの比率',
                     'text-order': '文字の順序 (レイヤー)', 'order-top': '上から', 'order-bottom': '下から',
                     'order-random': 'ランダム', 'text-placement': '画面内の配置', 'placement-random': 'ランダム',
                     'placement-soft': 'ソフト', 'placement-avoid': '重複を避ける', 'panel-title-output': '画像出力', 'btn-back': '戻る',
                     'output-format': 'フォーマット', 'btn-download': 'ダウンロード', 'panel-title-help': '操作説明',
-                    'initial-text': 'ここに画像が生成されます', 'unplaced-text': '{count}個の文章を配置できませんでした。',
+                    'initial-text': 'ここに画像が生成されます', 'unplaced-text': '{count}個の文章を配置できませんでした。', 'reset-settings': '設定をリセット',
                     'help-content': `
                         <p><b>1. テキストを用意する</b></p>
                         <p>左上のエリアにテキストファイル (.txt) をドラッグ＆ドロップします。ファイル内の改行が、一つの文章として認識されます。</p>
@@ -419,17 +435,17 @@
                     'text-drop-area': 'Drop text file (.txt) here<br>or click to select',
                     'delete-text': 'Delete text', 'delete-bg-image': 'Delete background image', 'generate-btn': 'Generate',
                     'accordion-field': 'Field Settings', 'accordion-font': 'Font Settings', 'canvas-size': 'Canvas Size',
-                    'bg-color': 'Background Color', 'bg-image-drop-area': 'Drop background image',
+                    'bg-color': 'Background Color', 'transparent-bg': 'Transparent BG (on PNG export)', 'bg-image-drop-area': 'Drop background image',
                     'bg-opacity': 'BG Image Opacity', 'bg-scale': 'BG Image Scale',
                     'accordion-random': 'Randomization Settings', 'mode-specify': 'Specify', 'mode-random': 'Random',
                     'mode-random-short': 'R', 'font-color': 'Font Color', 'font-bold': 'Bold', 'font-italic': 'Italic',
                     'font-shadow': 'Shadow', 'font-stroke': 'Stroke', 'font-stroke-color': 'Stroke Color',
-                    'font-size': 'Font Size (Min - Max)', 'writing-mode': 'Vertical Ratio',
+                    'font-size': 'Font Size (Min - Max)', 'text-opacity': 'Text Opacity', 'writing-mode': 'Vertical Ratio',
                     'text-order': 'Text Order (Layer)', 'order-top': 'Top-down', 'order-bottom': 'Bottom-up',
                     'order-random': 'Random', 'text-placement': 'Placement', 'placement-random': 'Random',
                     'placement-soft': 'Soft', 'placement-avoid': 'Avoid Overlap', 'panel-title-output': 'Export Image', 'btn-back': 'Back',
                     'output-format': 'Format', 'btn-download': 'Download', 'panel-title-help': 'Instructions',
-                    'initial-text': 'Image will be generated here', 'unplaced-text': 'Could not place {count} sentences.',
+                    'initial-text': 'Image will be generated here', 'unplaced-text': 'Could not place {count} sentences.', 'reset-settings': 'Reset Settings',
                     'help-content': `
                         <p><b>1. Prepare Text</b></p>
                         <p>Drag & drop a text file (.txt) into the top-left area. Each line break creates a new sentence.</p>
@@ -459,7 +475,7 @@
                             <input type="checkbox" id="font-check-${font.replace(/\s/g, '')}" value="${font}" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 save-state">
                             <label for="font-check-${font.replace(/\s/g, '')}" class="ml-2">${font}</label>
                         </div>
-                        <span style="font-family: '${font}', sans-serif; font-size: 18px;">Aa亜あア！？</span>
+                        <span style="font-family: '${font}', sans-serif; font-size: 22px;">Aa亜あア！？</span>
                     `;
                     container.appendChild(div);
                 });
@@ -503,6 +519,14 @@
                 });
             };
 
+            // アコーディオンの高さ再計算
+            const refreshAccordionHeight = (element) => {
+                const content = element.closest('.accordion-content');
+                if (content && content.style.maxHeight) {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            };
+            
             // テキストファイルのドロップ
             setupDropArea(textDropArea, textFileInput, (file) => {
                 const reader = new FileReader();
@@ -510,6 +534,7 @@
                     textLines = e.target.result.split(/\r\n|\n/).filter(line => line.trim() !== '');
                     textDropArea.querySelector('span').textContent = file.name;
                     deleteTextBtn.classList.remove('hidden');
+                    refreshAccordionHeight(deleteTextBtn);
                 };
                 reader.readAsText(file);
             });
@@ -520,6 +545,7 @@
                 deleteTextBtn.classList.add('hidden');
                 lastGeneratedLayout = [];
                 redrawCanvas();
+                refreshAccordionHeight(deleteTextBtn);
             });
 
             // 背景画像のドロップ
@@ -531,6 +557,7 @@
                         bgImageDropArea.querySelector('span').textContent = file.name; 
                         deleteBgImageBtn.classList.remove('hidden');
                         redrawCanvas();
+                        refreshAccordionHeight(deleteBgImageBtn);
                     };
                     bgImage.src = e.target.result;
                 };
@@ -542,6 +569,7 @@
                 bgImageDropArea.querySelector('span').textContent = translations[currentLang]['bg-image-drop-area'];
                 deleteBgImageBtn.classList.add('hidden');
                 redrawCanvas();
+                refreshAccordionHeight(deleteBgImageBtn);
             });
             
             // パネル切り替え
@@ -597,15 +625,22 @@
                 const placedRects = [];
                 let unplacedCount = 0;
 
+                // 色の均等分配のための準備
+                const shuffledFontColors = [...settings.fontColors].sort(() => 0.5 - Math.random());
+                const shuffledStrokeColors = [...settings.fontStrokeColors].sort(() => 0.5 - Math.random());
+                let fontColorIndex = 0;
+                let strokeColorIndex = 0;
+
                 linesToDraw.forEach(line => {
                     const style = {
                         fontFamily: activeFonts[Math.floor(Math.random() * activeFonts.length)],
-                        fontColor: settings.fontColorMode === 'random' ? getRandomColor() : settings.fontColors[Math.floor(Math.random() * settings.fontColors.length)],
-                        fontStrokeColor: settings.fontStrokeColorMode === 'random' ? getRandomColor() : settings.fontStrokeColors[Math.floor(Math.random() * settings.fontStrokeColors.length)],
+                        fontColor: settings.fontColorMode === 'random' ? getRandomColor() : shuffledFontColors[fontColorIndex++ % shuffledFontColors.length],
+                        fontStrokeColor: settings.fontStrokeColorMode === 'random' ? getRandomColor() : shuffledStrokeColors[strokeColorIndex++ % shuffledStrokeColors.length],
                         fontBold: (settings.fontBoldMode === 'on') ? true : (settings.fontBoldMode === 'off') ? false : Math.random() < 0.5,
                         fontItalic: (settings.fontItalicMode === 'on') ? true : (settings.fontItalicMode === 'off') ? false : Math.random() < 0.5,
                         fontShadow: (settings.fontShadowMode === 'on') ? true : (settings.fontShadowMode === 'off') ? false : Math.random() < 0.5,
                         fontStroke: (settings.fontStrokeMode === 'on') ? true : (settings.fontStrokeMode === 'off') ? false : Math.random() < 0.5,
+                        opacity: settings.textOpacityMode === 'random' ? Math.random() : settings.textOpacity,
                     };
                     const fontSize = Math.random() * (settings.fontSizeMax - settings.fontSizeMin) + settings.fontSizeMin;
                     const isVertical = Math.random() * 100 < settings.verticalRatio;
@@ -693,6 +728,7 @@
                 lastGeneratedLayout.forEach(item => {
                     const { line, style, fontSize, isVertical, position } = item;
                     
+                    ctx.globalAlpha = style.opacity;
                     ctx.font = `${style.fontItalic ? 'italic ' : ''}${style.fontBold ? 'bold ' : ''} ${fontSize}px "${style.fontFamily}"`;
                     ctx.fillStyle = style.fontColor;
                     ctx.strokeStyle = style.fontStrokeColor;
@@ -708,11 +744,12 @@
                         drawHorizontalWrappedText(item);
                     }
                 });
-                // シャドウをリセット
+                // シャドウと透過度をリセット
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
+                ctx.globalAlpha = 1.0;
             }
 
             // --- ヘルパー関数 ---
@@ -722,6 +759,7 @@
                     width: parseInt(document.getElementById('canvas-width').value, 10),
                     height: parseInt(document.getElementById('canvas-height').value, 10),
                     bgColor: document.getElementById('bg-color').value,
+                    transparentBg: document.getElementById('transparent-bg').checked,
                     bgOpacity: parseFloat(document.getElementById('bg-opacity').value),
                     bgScale: parseFloat(document.getElementById('bg-scale').value),
                     fontColorMode: document.querySelector('input[name="font-color-mode"]:checked').value,
@@ -734,6 +772,8 @@
                     fontStrokeColors: getColors('font-stroke-color').length > 0 ? getColors('font-stroke-color') : ['#FFFFFF'],
                     fontSizeMin: parseInt(document.getElementById('font-size-min').value, 10),
                     fontSizeMax: parseInt(document.getElementById('font-size-max').value, 10),
+                    textOpacityMode: document.querySelector('input[name="text-opacity-mode"]:checked').value,
+                    textOpacity: parseFloat(document.getElementById('text-opacity').value),
                     verticalRatio: parseInt(document.getElementById('vertical-ratio').value, 10),
                     textOrder: document.querySelector('input[name="text-order"]:checked').value,
                     textPlacement: document.querySelector('input[name="text-placement"]:checked').value,
@@ -745,7 +785,23 @@
                 return checked.length > 0 ? checked : ['Noto Sans JP'];
             }
             
-            function getRandomColor() { return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'); }
+            function hslToHex(h, s, l) {
+                l /= 100;
+                const a = s * Math.min(l, 1 - l) / 100;
+                const f = n => {
+                    const k = (n + h / 30) % 12;
+                    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                    return Math.round(255 * color).toString(16).padStart(2, '0');
+                };
+                return `#${f(0)}${f(8)}${f(4)}`;
+            }
+
+            function getRandomColor() {
+                const hue = Math.random() * 360;
+                const saturation = 70 + Math.random() * 30; // 70-100%
+                const lightness = 50 + Math.random() * 10; // 50-60%
+                return hslToHex(hue, saturation, lightness);
+            }
 
             function getMetrics(text, fontSize, style, isVertical) {
                 ctx.font = `${style.fontItalic ? 'italic ' : ''}${style.fontBold ? 'bold ' : ''} ${fontSize}px "${style.fontFamily}"`;
@@ -761,14 +817,14 @@
                 }
             }
             
-            function drawHorizontalWrappedText(item) {
+            function drawHorizontalWrappedText(item, targetCtx = ctx) {
                 const { line, style, fontSize, position } = item;
                 const { x, y, rect } = position;
                 const maxWidth = rect.width;
                 const lineHeight = fontSize * 1.2;
 
-                ctx.textAlign = "left";
-                ctx.textBaseline = "top";
+                targetCtx.textAlign = "left";
+                targetCtx.textBaseline = "top";
 
                 const paragraphs = line.split('\n');
                 let currentY = y;
@@ -782,28 +838,28 @@
                     const words = paragraph.split('');
                     for (let i = 0; i < words.length; i++) {
                         const testLine = currentLine + words[i];
-                        if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
-                            if (style.fontStroke) ctx.strokeText(currentLine, x, currentY);
-                            ctx.fillText(currentLine, x, currentY);
+                        if (targetCtx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
+                            if (style.fontStroke) targetCtx.strokeText(currentLine, x, currentY);
+                            targetCtx.fillText(currentLine, x, currentY);
                             currentLine = words[i];
                             currentY += lineHeight;
                         } else {
                             currentLine = testLine;
                         }
                     }
-                    if (style.fontStroke) ctx.strokeText(currentLine, x, currentY);
-                    ctx.fillText(currentLine, x, currentY);
+                    if (style.fontStroke) targetCtx.strokeText(currentLine, x, currentY);
+                    targetCtx.fillText(currentLine, x, currentY);
                     currentY += lineHeight;
                 }
             }
 
-            function drawVerticalText(item) {
+            function drawVerticalText(item, targetCtx = ctx) {
                 const { line, style, fontSize, position } = item;
                 const { x, y } = position;
                 const lines = line.split('\n');
                 const charsToRotate = ['ー', '…', '(', ')', '（', '）', '[', ']', '［', '］', '{', '}', '｛', '｝', '~', '～'];
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                targetCtx.textAlign = 'center';
+                targetCtx.textBaseline = 'middle';
 
                 lines.forEach((line, lineIndex) => {
                     const lineX = x + (lines.length - 1 - lineIndex) * fontSize;
@@ -813,15 +869,15 @@
                         const charY = y + (i * fontSize) + (fontSize / 2);
 
                         if (charsToRotate.includes(char)) {
-                            ctx.save();
-                            ctx.translate(charX, charY);
-                            ctx.rotate(Math.PI / 2);
-                            if (style.fontStroke) ctx.strokeText(char, 0, 0);
-                            ctx.fillText(char, 0, 0);
-                            ctx.restore();
+                            targetCtx.save();
+                            targetCtx.translate(charX, charY);
+                            targetCtx.rotate(Math.PI / 2);
+                            if (style.fontStroke) targetCtx.strokeText(char, 0, 0);
+                            targetCtx.fillText(char, 0, 0);
+                            targetCtx.restore();
                         } else {
-                            if (style.fontStroke) ctx.strokeText(char, charX, charY);
-                            ctx.fillText(char, charX, charY);
+                            if (style.fontStroke) targetCtx.strokeText(char, charX, charY);
+                            targetCtx.fillText(char, charX, charY);
                         }
                     }
                 });
@@ -913,29 +969,53 @@
                 isEditing = true;
                 selectedTextIndex = index;
                 const item = lastGeneratedLayout[index];
+                const { line, style, fontSize, isVertical, position } = item;
 
-                textEditor.value = item.line;
-                textEditor.style.font = `${item.style.fontItalic ? 'italic ' : ''}${item.style.fontBold ? 'bold ' : ''} ${item.fontSize}px "${item.style.fontFamily}"`;
-                textEditor.style.color = '#000000'; // 編集時は黒文字で固定
-                
-                textEditorContainer.style.top = `${item.position.y - 1}px`; // 枠線分を考慮
-                textEditorContainer.style.left = `${item.position.x - 1}px`;
+                textEditor.value = line;
+                textEditor.style.font = `${style.fontItalic ? 'italic ' : ''}${style.fontBold ? 'bold ' : ''} ${fontSize}px "${style.fontFamily}"`;
+                textEditor.style.color = '#000000'; // Always black for editing
+                textEditor.style.lineHeight = '1.2';
 
-                if (item.isVertical) {
+                const tempCtx = document.createElement('canvas').getContext('2d');
+                tempCtx.font = textEditor.style.font;
+                const lines = line.split('\n');
+                let requiredWidth, requiredHeight;
+
+                if (isVertical) {
                     textEditor.classList.remove('horizontal');
                     textEditor.classList.add('vertical');
-                    textEditor.style.height = `${item.position.rect.height + 4}px`;
-                    textEditor.style.width = `${item.position.rect.width + 4}px`;
+                    requiredWidth = lines.length * fontSize + 20;
+                    requiredHeight = Math.max(...lines.map(l => l.length)) * fontSize + 20;
                 } else {
                     textEditor.classList.remove('vertical');
                     textEditor.classList.add('horizontal');
-                    textEditor.style.width = `${item.position.rect.width + 4}px`;
-                    textEditor.style.height = `${item.position.rect.height + 4}px`;
+                    requiredWidth = Math.max(...lines.map(l => tempCtx.measureText(l).width)) + 20;
+                    requiredHeight = lines.length * fontSize * 1.2 + 20;
                 }
+                
+                requiredWidth = Math.max(requiredWidth, 50);
+                requiredHeight = Math.max(requiredHeight, 40);
+
+                let newLeft = position.x - 1;
+                let newTop = position.y - 1;
+
+                if (newLeft + requiredWidth > canvas.width) {
+                    newLeft = canvas.width - requiredWidth - 5;
+                }
+                if (newTop + requiredHeight > canvas.height) {
+                    newTop = canvas.height - requiredHeight - 30;
+                }
+                newLeft = Math.max(0, newLeft);
+                newTop = Math.max(0, newTop);
+
+                textEditor.style.width = `${requiredWidth}px`;
+                textEditor.style.height = `${requiredHeight}px`;
+                textEditorContainer.style.left = `${newLeft}px`;
+                textEditorContainer.style.top = `${newTop}px`;
 
                 textEditorContainer.style.display = 'flex';
                 textEditor.focus();
-                textEditor.setSelectionRange(0, 0); // カーソルを先頭に設定
+                textEditor.setSelectionRange(0, 0);
             }
 
             function stopEditing(saveChanges) {
@@ -944,7 +1024,6 @@
                     const item = lastGeneratedLayout[selectedTextIndex];
                     item.line = textEditor.value;
                     
-                    // リサイズされた場合は、そのサイズを新しいrectとして保存
                     item.position.rect.width = textEditor.clientWidth;
                     item.position.rect.height = textEditor.clientHeight;
                 }
@@ -965,9 +1044,49 @@
             // --- ダウンロード、設定保存/読込 ---
             downloadBtn.addEventListener('click', () => {
                 const format = document.getElementById('output-format').value;
+                const settings = getSettings();
+                const isTransparent = settings.transparentBg && format === 'png';
+
+                const exportCanvas = document.createElement('canvas');
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                exportCanvas.width = settings.width;
+                exportCanvas.height = settings.height;
+
+                if (!isTransparent) {
+                    exportCtx.fillStyle = settings.bgColor;
+                    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                }
+
+                if (bgImage) {
+                    exportCtx.globalAlpha = settings.bgOpacity;
+                    const w = bgImage.width * settings.bgScale;
+                    const h = bgImage.height * settings.bgScale;
+                    exportCtx.drawImage(bgImage, (exportCanvas.width - w) / 2, (exportCanvas.height - h) / 2, w, h);
+                }
+
+                lastGeneratedLayout.forEach(item => {
+                    const { style, fontSize, isVertical } = item;
+                    exportCtx.globalAlpha = style.opacity;
+                    exportCtx.font = `${style.fontItalic ? 'italic ' : ''}${style.fontBold ? 'bold ' : ''} ${fontSize}px "${style.fontFamily}"`;
+                    exportCtx.fillStyle = style.fontColor;
+                    exportCtx.strokeStyle = style.fontStrokeColor;
+                    exportCtx.lineWidth = 2;
+                    exportCtx.shadowColor = style.fontShadow ? 'rgba(0, 0, 0, 0.5)' : 'transparent';
+                    exportCtx.shadowBlur = style.fontShadow ? 5 : 0;
+                    exportCtx.shadowOffsetX = style.fontShadow ? 2 : 2;
+                    exportCtx.shadowOffsetY = style.fontShadow ? 2 : 2;
+                    
+                    if (isVertical) {
+                        drawVerticalText(item, exportCtx);
+                    } else {
+                        drawHorizontalWrappedText(item, exportCtx);
+                    }
+                });
+
                 const link = document.createElement('a');
                 link.download = `random-text-art.${format}`;
-                link.href = canvas.toDataURL(`image/${format}`, 1.0);
+                link.href = exportCanvas.toDataURL(`image/${format}`, 1.0);
                 link.click();
             });
 
@@ -976,10 +1095,12 @@
                 const countInput = document.getElementById(`${type}-count`);
                 const container = document.getElementById(`${type}-pickers`);
                 const modeRadios = document.querySelectorAll(`input[name="${type}-mode"]`);
-                const defaultColors = type === 'font-color' ? ['#000000', '#FF0000', '#0000FF', '#008000', '#FFFF00'] : ['#FFFFFF', '#000000', '#FF0000', '#0000FF', '#008000'];
+                const defaultColors = type === 'font-color' 
+                    ? ['#000000', '#FF0000', '#0000FF', '#008000', '#FFFF00', '#800080', '#00FFFF'] 
+                    : ['#FFFFFF', '#000000', '#FF0000', '#0000FF', '#008000', '#800080', '#00FFFF'];
 
                 container.innerHTML = '';
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 7; i++) {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'color-picker-wrapper';
                     const colorInput = document.createElement('input');
@@ -1013,7 +1134,7 @@
             }
             
             // 設定の保存/読込
-            const settingsKey = 'randomTextPlacerSettings_v7';
+            const settingsKey = 'randomTextPlacerSettings_v11';
             function getSettingsToSave() {
                 const settings = {};
                 document.querySelectorAll('.save-state').forEach(el => {
@@ -1044,7 +1165,7 @@
                     }
                 });
                 // UI更新イベントを発火
-                document.querySelectorAll('input[name="font-color-mode"], input[name="font-stroke-color-mode"]').forEach(r => {
+                document.querySelectorAll('input[name="font-color-mode"], input[name="font-stroke-color-mode"], input[name="text-opacity-mode"]').forEach(r => {
                     r.dispatchEvent(new Event('change'));
                     const countInput = document.getElementById(r.name.replace('-mode', '-count'));
                     if (countInput) countInput.dispatchEvent(new Event('input'));
@@ -1076,16 +1197,56 @@
                 e.target.value = '';
             });
 
+            resetRandomSettingsBtn.addEventListener('click', () => {
+                const container = document.getElementById('random-settings');
+                // Reset inputs to default
+                container.querySelectorAll('input.save-state').forEach(el => {
+                    if (el.type === 'range') {
+                        if(el.id === 'font-size-min') el.value = 16;
+                        else if(el.id === 'font-size-max') el.value = 48;
+                        else if(el.id === 'vertical-ratio') el.value = 50;
+                        else if(el.id === 'text-opacity') el.value = 1;
+                        el.dispatchEvent(new Event('input'));
+                    } else if (el.type === 'number') {
+                        el.value = 1;
+                    }
+                });
+                // Reset radio buttons
+                container.querySelectorAll('input[type="radio"].save-state').forEach(el => {
+                    if(el.name === 'text-order' && el.value === 'random') el.checked = true;
+                    if(el.name === 'text-placement' && el.value === 'soft-avoid') el.checked = true;
+                    if(el.name === 'font-color-mode' && el.value === 'random') el.checked = true;
+                    if(el.name === 'font-stroke-color-mode' && el.value === 'random') el.checked = true;
+                    if(el.name === 'text-opacity-mode' && el.value === 'specify') el.checked = true;
+                    if(['font-bold-mode', 'font-italic-mode', 'font-shadow-mode', 'font-stroke-mode'].includes(el.name) && el.value === 'random') el.checked = true;
+                });
+                // Trigger updates
+                document.querySelectorAll('#random-settings input[type="radio"]').forEach(r => r.dispatchEvent(new Event('change')));
+            });
+
             // --- 初期化処理 ---
             populateFontList();
             setupColorPickers('font-color');
             setupColorPickers('font-stroke-color');
+            
+            const textOpacityModeRadios = document.querySelectorAll('input[name="text-opacity-mode"]');
+            const textOpacitySlider = document.getElementById('text-opacity');
+            function updateOpacitySliderVisibility() {
+                const isSpecify = document.querySelector('input[name="text-opacity-mode"]:checked').value === 'specify';
+                textOpacitySlider.style.display = isSpecify ? 'block' : 'none';
+                refreshAccordionHeight(textOpacitySlider);
+            }
+            textOpacityModeRadios.forEach(radio => radio.addEventListener('change', updateOpacitySliderVisibility));
+            
             switchLanguage('ja');
             redrawCanvas();
 
             // フォント全選択/全解除
             fontSelectAllBtn.addEventListener('click', () => document.querySelectorAll('#font-selection-list input').forEach(cb => cb.checked = true));
             fontDeselectAllBtn.addEventListener('click', () => document.querySelectorAll('#font-selection-list input').forEach(cb => cb.checked = false));
+        
+            // 初期状態でUIを更新
+            updateOpacitySliderVisibility();
         });
     </script>
 </body>
