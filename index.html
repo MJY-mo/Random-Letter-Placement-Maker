@@ -8,11 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic&family=Dela+Gothic+One&family=DotGothic16&family=Hina+Mincho&family=Kaisei+Decol&family=Kaisei+Opti&family=Kiwi+Maru&family=Kosugi+Maru&family=M+PLUS+Rounded+1c:wght@400;700&family=Mochiy+Pop+One&family=Noto+Sans+JP:wght@400;700&family=Potta+One&family=RocknRoll+One&family=Sawarabi+Gothic&family=Shippori+Mincho&family=Yuji+Syuku&family=Yusei+Magic&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic&family=Dela+Gothic+One&family=DotGothic16&family=Hina+Mincho&family=Kaisei+Decol&family=Kaisei+Opti&family=Kiwi+Maru&family=Kosugi+Maru&family=M+PLUS+Rounded+1c:wght@400;700&family=Mochiy+Pop+One&family=Noto+Sans+JP:wght@400;700&family=Potta+One&family=RocknRoll+One&family=Sawarabi+Gothic&family=Shippori+Mincho&family=Yuji+Syuku&family=Yusei+Magic&family=Zen+Kaku+Gothic+New:wght@400;700&family=Klee+One&family=Stick&family=Rampart+One&family=Train+One&family=Zen+Maru+Gothic&family=Yomogi&display=swap" rel="stylesheet">
     <style>
         /* カスタムスタイル */
         body {
             font-family: 'Noto Sans JP', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         .accordion-content {
             max-height: 0;
@@ -26,8 +28,8 @@
             transition: border-color 0.3s, background-color 0.3s;
         }
         .drop-area.dragover {
-            border-color: #4f46e5;
-            background-color: #e0e7ff;
+            border-color: #4f46e5; /* indigo-600 */
+            background-color: #e0e7ff; /* indigo-100 */
         }
         .btn {
             transition: all 0.2s ease-in-out;
@@ -36,45 +38,35 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .btn-purple { background-color: #8b5cf6; color: white; }
-        .btn-green { background-color: #22c55e; color: white; }
-        .btn-gray { background-color: #6b7280; color: white; }
-        .btn-gray.active {
-             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
-        }
-        .btn-gray.active-purple { background-color: #8b5cf6; }
-        .btn-gray.active-green { background-color: #22c55e; }
-        /* ラジオボタンの隣のUIを無効化/非表示にするスタイル */
-        .setting-group input[type="radio"][value="random"]:checked ~ .specify-control,
-        .setting-group input[type="radio"][value="random"]:checked ~ .specify-control-container {
-            display: none;
-        }
-        .setting-group input[type="radio"][value="specify"]:checked ~ .specify-control,
-        .setting-group input[type="radio"][value="specify"]:checked ~ .specify-control-container {
-            display: flex; /* Or appropriate display value */
-        }
+        .btn-gray.active-purple { background-color: #8b5cf6; /* violet-500 */ }
+        .btn-gray.active-green { background-color: #22c55e; /* green-500 */ }
+        
+        /* カラーピッカーのスタイル */
         .color-picker-wrapper {
             position: relative;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
         }
         input[type="color"] {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             padding: 0;
-            border: none;
-            border-radius: 0.375rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
             cursor: pointer;
         }
         input[type="color"]::-webkit-color-swatch {
-            border: 1px solid #ccc;
-            border-radius: 0.375rem;
+            border: none;
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .color-picker-wrapper.is-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
         .color-picker-wrapper.is-disabled input[type="color"] {
-            opacity: 0.3;
             cursor: not-allowed;
         }
         .color-picker-wrapper.is-disabled::after {
@@ -89,6 +81,39 @@
             pointer-events: none;
             border-radius: 1px;
         }
+
+        /* キャンバスのカーソル */
+        #main-canvas.draggable { cursor: grab; }
+        #main-canvas.dragging { cursor: grabbing; }
+
+        /* テキスト編集エリア */
+        #text-editor-container {
+            position: absolute;
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        #text-editor {
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #4f46e5;
+            outline: none;
+            padding: 2px;
+            box-sizing: border-box;
+            line-height: 1.2; /* キャンバスの行間と合わせる */
+        }
+        #text-editor-buttons {
+            margin-top: 4px;
+        }
+        #text-editor.vertical {
+            writing-mode: vertical-rl;
+            white-space: pre;
+            resize: both; /* 縦横リサイズを有効化 */
+            direction: ltr;
+        }
+        #text-editor.horizontal {
+            resize: both;
+        }
+
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex flex-col h-screen">
@@ -97,14 +122,14 @@
     <header class="bg-white shadow-md p-2 flex items-center justify-between flex-shrink-0">
         <h1 class="text-lg font-bold text-gray-700" data-lang="app-title">ランダム文字配置メーカー</h1>
         <div class="flex items-center space-x-2">
-            <button id="btn-image-output" class="btn btn-gray px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-image-output">画像出力</button>
-            <button id="btn-help" class="btn btn-gray px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-help">操作説明</button>
+            <button id="btn-image-output" class="btn btn-gray bg-gray-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-image-output">画像出力</button>
+            <button id="btn-help" class="btn btn-gray bg-gray-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-help">操作説明</button>
             <span class="text-gray-300">|</span>
-            <button id="btn-save-settings" class="btn btn-gray px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-save">設定を保存</button>
-            <button id="btn-load-settings" class="btn btn-gray px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-load">設定を読込</button>
+            <button id="btn-save-settings" class="btn btn-gray bg-gray-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-save">保存</button>
+            <button id="btn-load-settings" class="btn btn-gray bg-gray-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold" data-lang="btn-load">呼出</button>
             <input type="file" id="settings-file-input" class="hidden" accept=".json">
             <span class="text-gray-300">|</span>
-            <button id="btn-lang-switch" class="btn btn-gray px-3 py-1.5 rounded-md text-sm font-semibold w-24">English</button>
+            <button id="btn-lang-switch" class="btn btn-gray bg-gray-500 text-white px-3 py-1.5 rounded-md text-sm font-semibold w-24">English</button>
         </div>
     </header>
 
@@ -112,180 +137,156 @@
     <div class="flex-grow flex p-4 gap-4 overflow-hidden">
 
         <!-- 左パネル -->
-        <div class="w-1/3 max-w-lg flex-shrink-0 overflow-y-auto bg-white p-4 rounded-lg shadow-lg">
+        <div class="w-full md:w-1/3 max-w-md flex-shrink-0 overflow-y-auto bg-white p-4 rounded-lg shadow-lg">
             
             <!-- 設定パネル (デフォルト) -->
             <div id="settings-panel">
-                <div id="text-drop-area" class="drop-area w-full h-24 rounded-lg flex items-center justify-center text-gray-500 mb-1 cursor-pointer">
-                    <span data-lang="text-drop-area">テキストファイルをここにドロップ</span>
+                <div id="text-drop-area" class="drop-area w-full h-24 rounded-lg flex items-center justify-center text-center text-gray-500 mb-1 cursor-pointer p-2">
+                    <span data-lang="text-drop-area">テキストファイル(.txt)をここにドロップ<br>またはクリックして選択</span>
                 </div>
                 <button id="delete-text-btn" class="text-xs text-red-500 hover:text-red-700 w-full text-right mb-2 hidden" data-lang="delete-text">テキストを削除</button>
                 <input type="file" id="text-file-input" class="hidden" accept=".txt">
-                <button id="generate-btn" class="btn bg-indigo-600 text-white w-full py-2 rounded-md font-bold hover:bg-indigo-700" data-lang="generate-btn">画像を作成</button>
+                <button id="generate-btn" class="btn bg-indigo-600 text-white w-full py-2 rounded-md font-bold hover:bg-indigo-700" data-lang="generate-btn">作成</button>
                 
                 <!-- アコーディオン -->
                 <div class="space-y-2 mt-4">
                     <!-- フィールド設定 -->
                     <div>
-                        <button class="accordion-toggle w-full text-left font-semibold p-2 bg-gray-200 rounded-md" data-target="#field-settings">
+                        <button class="accordion-toggle w-full text-left font-semibold p-2 bg-gray-200 rounded-md hover:bg-gray-300" data-target="#field-settings">
                             <span data-lang="accordion-field">フィールド設定</span>
                         </button>
                         <div id="field-settings" class="accordion-content">
-                            <div class="p-4">
-                                <label class="block text-sm font-medium" data-lang="canvas-size">画面サイズ</label>
-                                <div class="flex gap-2 mt-1">
-                                    <input type="number" id="canvas-width" value="800" class="w-full p-1 border rounded-md realtime-update save-state">
-                                    <span class="self-center">x</span>
-                                    <input type="number" id="canvas-height" value="600" class="w-full p-1 border rounded-md realtime-update save-state">
+                            <div class="p-4 space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium" data-lang="canvas-size">画面サイズ</label>
+                                    <div class="flex gap-2 mt-1">
+                                        <input type="number" id="canvas-width" value="800" class="w-full p-1 border rounded-md realtime-update save-state">
+                                        <span class="self-center">x</span>
+                                        <input type="number" id="canvas-height" value="600" class="w-full p-1 border rounded-md realtime-update save-state">
+                                    </div>
                                 </div>
-                                <label class="block text-sm font-medium mt-2" data-lang="bg-color">背景色</label>
-                                <div class="flex items-center gap-2">
+                                <div>
+                                    <label class="block text-sm font-medium" data-lang="bg-color">背景色</label>
                                     <input type="color" id="bg-color" value="#ffffff" class="w-full h-8 border rounded-md realtime-update save-state">
-                                    <input type="range" id="bg-color-opacity" min="0" max="1" step="0.05" value="0" class="w-full mt-1 realtime-update save-state">
                                 </div>
-                                
-                                <div id="bg-image-drop-area" class="drop-area w-full h-20 rounded-lg flex items-center justify-center text-gray-500 mt-2 mb-1 cursor-pointer">
-                                    <span data-lang="bg-image-drop-area">背景画像をドロップ</span>
+                                <div>
+                                    <div id="bg-image-drop-area" class="drop-area w-full h-20 rounded-lg flex items-center justify-center text-center text-gray-500 mt-2 mb-1 cursor-pointer p-2">
+                                        <span data-lang="bg-image-drop-area">背景画像をドロップ</span>
+                                    </div>
+                                    <button id="delete-bg-image-btn" class="text-xs text-red-500 hover:text-red-700 w-full text-right hidden" data-lang="delete-bg-image">背景画像を削除</button>
+                                    <input type="file" id="bg-image-input" class="hidden" accept="image/*">
                                 </div>
-                                <button id="delete-bg-image-btn" class="text-xs text-red-500 hover:text-red-700 w-full text-right hidden" data-lang="delete-bg-image">背景画像を削除</button>
-                                <input type="file" id="bg-image-input" class="hidden" accept="image/*">
-
-                                <label class="block text-sm font-medium mt-2" data-lang="bg-opacity">背景画像の透過度</label>
-                                <input type="range" id="bg-opacity" min="0" max="1" step="0.05" value="1" class="w-full mt-1 realtime-update save-state">
-                                
-                                <label class="block text-sm font-medium mt-2" data-lang="bg-scale">背景画像の拡大縮小</label>
-                                <input type="range" id="bg-scale" min="0.1" max="3" step="0.1" value="1" class="w-full mt-1 realtime-update save-state">
-                                <button id="reset-field-settings" class="btn bg-orange-500 text-white w-full py-1.5 rounded-md text-sm mt-4 hover:bg-orange-600" data-lang="reset-settings">設定をリセット</button>
+                                <div>
+                                    <label class="block text-sm font-medium" data-lang="bg-opacity">背景画像の透過度</label>
+                                    <input type="range" id="bg-opacity" min="0" max="1" step="0.05" value="1" class="w-full mt-1 realtime-update save-state">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium" data-lang="bg-scale">背景画像の拡大縮小</label>
+                                    <input type="range" id="bg-scale" min="0.1" max="3" step="0.1" value="1" class="w-full mt-1 realtime-update save-state">
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- ランダム処理の設定 -->
                     <div>
-                        <button class="accordion-toggle w-full text-left font-semibold p-2 bg-gray-200 rounded-md" data-target="#random-settings">
+                        <button class="accordion-toggle w-full text-left font-semibold p-2 bg-gray-200 rounded-md hover:bg-gray-300" data-target="#random-settings">
                            <span data-lang="accordion-random">ランダム処理の設定</span>
                         </button>
                         <div id="random-settings" class="accordion-content">
-                            <div class="p-4 space-y-3">
-                                <!-- Reordered settings -->
+                            <div class="p-4 space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium" data-lang="font-size">フォントサイズ (最小 - 最大)</label>
                                     <div class="flex gap-2 mt-1 items-center">
-                                        <input type="range" id="font-size-min" min="8" max="150" value="16" class="w-full save-state">
                                         <span id="font-size-min-val" class="text-xs w-8 text-center">16</span>
-                                        <span>-</span>
+                                        <input type="range" id="font-size-min" min="8" max="150" value="16" class="w-full save-state">
                                         <input type="range" id="font-size-max" min="8" max="150" value="48" class="w-full save-state">
                                         <span id="font-size-max-val" class="text-xs w-8 text-center">48</span>
                                     </div>
                                 </div>
-                                <div class="setting-group">
-                                    <label class="block text-sm font-medium" data-lang="text-opacity">文字の透過率</label>
-                                    <div class="flex gap-4 text-sm mt-1">
-                                        <label><input type="radio" name="text-opacity-mode" value="specify" checked class="save-state"> <span data-lang="mode-specify">指定</span></label>
-                                        <label><input type="radio" name="text-opacity-mode" value="random" class="save-state"> <span data-lang="mode-random">ランダム</span></label>
-                                    </div>
-                                    <input type="range" id="text-opacity" min="0" max="1" step="0.05" value="1" class="specify-control hide-on-random w-full mt-1 save-state">
-                                </div>
                                 <div>
-                                    <label class="block text-sm font-medium mt-2" data-lang="writing-mode">縦書きの比率</label>
+                                    <label class="block text-sm font-medium" data-lang="writing-mode">縦書きの比率</label>
                                     <input type="range" id="vertical-ratio" min="0" max="100" value="50" class="w-full mt-1 save-state">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium mt-2" data-lang="text-order">文字の順序</label>
+                                    <label class="block text-sm font-medium" data-lang="text-order">文字の順序 (レイヤー)</label>
                                     <div class="flex justify-around text-sm mt-1">
                                         <label><input type="radio" name="text-order" value="top" class="save-state"> <span data-lang="order-top">上から</span></label>
                                         <label><input type="radio" name="text-order" value="bottom" class="save-state"> <span data-lang="order-bottom">下から</span></label>
                                         <label><input type="radio" name="text-order" value="random" checked class="save-state"> <span data-lang="order-random">ランダム</span></label>
                                     </div>
                                 </div>
-                                <div class="text-sm mt-2">
-                                    <label class="flex items-center"><input type="checkbox" id="wrap-text" class="mr-2 save-state"> <span data-lang="wrap-text">テキストを画像内で折り返す</span></label>
-                                </div>
                                 <div>
-                                    <label class="block text-sm font-medium mt-2" data-lang="text-placement">画面内の文章の配置</label>
+                                    <label class="block text-sm font-medium" data-lang="text-placement">画面内の配置</label>
                                      <div class="flex justify-around text-sm mt-1">
                                         <label><input type="radio" name="text-placement" value="random" class="save-state"> <span data-lang="placement-random">ランダム</span></label>
-                                        <label><input type="radio" name="text-placement" value="soft-avoid" checked class="save-state"> <span data-lang="placement-soft">ソフト</span></label>
-                                        <label><input type="radio" name="text-placement" value="avoid-overlap" class="save-state"> <span data-lang="placement-avoid">重複を避ける</span></label>
+                                        <label><input type="radio" name="text-placement" value="soft-avoid" class="save-state"> <span data-lang="placement-soft">ソフト</span></label>
+                                        <label><input type="radio" name="text-placement" value="avoid-overlap" checked class="save-state"> <span data-lang="placement-avoid">重複を避ける</span></label>
                                     </div>
                                 </div>
 
-                                <!-- Original settings -->
-                                <div class="setting-group pt-2 border-t mt-3">
+                                <!-- 文字色など -->
+                                <div class="setting-group pt-3 border-t mt-3">
                                     <label class="block text-sm font-medium" data-lang="font-color">文字色</label>
                                     <div class="flex gap-4 text-sm mt-1 items-center">
                                         <label><input type="radio" name="font-color-mode" value="random" checked class="save-state"> <span data-lang="mode-random">ランダム</span></label>
                                         <label class="flex items-center">
                                             <input type="radio" name="font-color-mode" value="specify" class="save-state"> 
                                             <span class="ml-1" data-lang="mode-specify">指定</span>
-                                            <input type="number" id="font-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state">
+                                            <input type="number" id="font-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state" style="display: none;">
                                         </label>
                                     </div>
-                                    <div id="font-color-pickers" class="specify-control-container flex gap-2 mt-2 flex-wrap"></div>
+                                    <div id="font-color-pickers" class="flex gap-2 mt-2 flex-wrap"></div>
                                 </div>
+
                                 <div class="space-y-2 text-sm">
                                     <div class="flex items-center justify-between">
                                         <span data-lang="font-bold">太字</span>
-                                        <div class="flex gap-3">
-                                            <label class="flex items-center"><input type="radio" name="font-bold-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random-short">ランダム</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-bold-mode" value="on" class="save-state"> <span class="ml-1">On</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-bold-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label>
-                                        </div>
+                                        <div class="flex gap-3"><label class="flex items-center"><input type="radio" name="font-bold-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random">ランダム</span></label><label class="flex items-center"><input type="radio" name="font-bold-mode" value="on" class="save-state"> <span class="ml-1">On</span></label><label class="flex items-center"><input type="radio" name="font-bold-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label></div>
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <span data-lang="font-italic">斜体</span>
-                                        <div class="flex gap-3">
-                                            <label class="flex items-center"><input type="radio" name="font-italic-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random-short">ランダム</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-italic-mode" value="on" class="save-state"> <span class="ml-1">On</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-italic-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label>
-                                        </div>
+                                        <div class="flex gap-3"><label class="flex items-center"><input type="radio" name="font-italic-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random">ランダム</span></label><label class="flex items-center"><input type="radio" name="font-italic-mode" value="on" class="save-state"> <span class="ml-1">On</span></label><label class="flex items-center"><input type="radio" name="font-italic-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label></div>
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <span data-lang="font-shadow">影</span>
-                                        <div class="flex gap-3">
-                                            <label class="flex items-center"><input type="radio" name="font-shadow-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random-short">ランダム</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-shadow-mode" value="on" class="save-state"> <span class="ml-1">On</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-shadow-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label>
-                                        </div>
+                                        <div class="flex gap-3"><label class="flex items-center"><input type="radio" name="font-shadow-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random">ランダム</span></label><label class="flex items-center"><input type="radio" name="font-shadow-mode" value="on" class="save-state"> <span class="ml-1">On</span></label><label class="flex items-center"><input type="radio" name="font-shadow-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label></div>
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <span data-lang="font-stroke">縁取り</span>
-                                        <div class="flex gap-3">
-                                            <label class="flex items-center"><input type="radio" name="font-stroke-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random-short">ランダム</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-stroke-mode" value="on" class="save-state"> <span class="ml-1">On</span></label>
-                                            <label class="flex items-center"><input type="radio" name="font-stroke-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label>
-                                        </div>
+                                        <div class="flex gap-3"><label class="flex items-center"><input type="radio" name="font-stroke-mode" value="random" checked class="save-state"> <span class="ml-1" data-lang="mode-random">ランダム</span></label><label class="flex items-center"><input type="radio" name="font-stroke-mode" value="on" class="save-state"> <span class="ml-1">On</span></label><label class="flex items-center"><input type="radio" name="font-stroke-mode" value="off" class="save-state"> <span class="ml-1">Off</span></label></div>
                                     </div>
                                 </div>
+                                
+
                                 <div class="setting-group">
                                     <label class="block text-sm font-medium" data-lang="font-stroke-color">縁取りの色</label>
-                                    <div class="flex gap-4 text-sm mt-1 items-center">
+                                     <div class="flex gap-4 text-sm mt-1 items-center">
                                         <label><input type="radio" name="font-stroke-color-mode" value="random" checked class="save-state"> <span data-lang="mode-random">ランダム</span></label>
                                         <label class="flex items-center">
                                             <input type="radio" name="font-stroke-color-mode" value="specify" class="save-state">
                                             <span class="ml-1" data-lang="mode-specify">指定</span>
-                                            <input type="number" id="font-stroke-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state">
+                                            <input type="number" id="font-stroke-color-count" value="1" min="1" max="5" class="w-12 ml-2 p-0.5 border rounded-md text-center specify-control save-state" style="display: none;">
                                         </label>
                                     </div>
-                                    <div id="font-stroke-color-pickers" class="specify-control-container flex gap-2 mt-2 flex-wrap"></div>
+                                    <div id="font-stroke-color-pickers" class="flex gap-2 mt-2 flex-wrap"></div>
                                 </div>
-                                <button id="reset-random-settings" class="btn bg-orange-500 text-white w-full py-1.5 rounded-md text-sm mt-4 hover:bg-orange-600" data-lang="reset-settings">設定をリセット</button>
                             </div>
                         </div>
                     </div>
 
                     <!-- フォント設定 -->
                     <div>
-                        <button class="accordion-toggle w-full text-left font-semibold p-2 bg-gray-200 rounded-md" data-target="#font-settings">
-                           <span data-lang="accordion-font">フォント設定（使用選択）</span>
+                        <button class="accordion-toggle w-full text-left font-semibold p-2 bg-gray-200 rounded-md hover:bg-gray-300" data-target="#font-settings">
+                           <span data-lang="accordion-font">フォント設定</span>
                         </button>
                         <div id="font-settings" class="accordion-content">
                            <div class="p-4 space-y-2">
                                 <div class="flex gap-2">
-                                    <button id="font-select-all" class="btn bg-gray-200 text-gray-700 text-xs py-1 px-2 rounded-md w-full">全てON</button>
-                                    <button id="font-deselect-all" class="btn bg-gray-200 text-gray-700 text-xs py-1 px-2 rounded-md w-full">全てOFF</button>
+                                    <button id="font-select-all" class="btn bg-gray-200 text-gray-700 text-xs py-1 px-2 rounded-md w-full">全て選択</button>
+                                    <button id="font-deselect-all" class="btn bg-gray-200 text-gray-700 text-xs py-1 px-2 rounded-md w-full">全て解除</button>
                                 </div>
-                                <div id="font-selection-list" class="mt-2"></div>
+                                <div id="font-selection-list" class="mt-2 max-h-[36rem] overflow-y-auto pr-2"></div>
                            </div>
                         </div>
                     </div>
@@ -319,22 +320,28 @@
                  <div class="text-sm space-y-3" data-lang-html="help-content">
                  </div>
             </div>
-
         </div>
 
         <!-- 右パネル (キャンバス) -->
-        <div class="flex-grow bg-white rounded-lg shadow-lg flex items-center justify-center p-2 overflow-auto relative">
+        <div id="canvas-container" class="flex-grow bg-white rounded-lg shadow-lg flex items-center justify-center p-2 overflow-auto relative">
             <canvas id="main-canvas" class="border"></canvas>
             <div id="notification-area" class="absolute bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg hidden" role="alert"></div>
+            <!-- テキスト編集エリア -->
+            <div id="text-editor-container">
+                <textarea id="text-editor"></textarea>
+                <div id="text-editor-buttons">
+                    <button id="text-editor-ok" class="btn bg-green-500 text-white px-2 py-1 text-xs rounded">OK</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM要素の取得 ---
+            const canvasContainer = document.getElementById('canvas-container');
             const canvas = document.getElementById('main-canvas');
             const ctx = canvas.getContext('2d');
-            
             const textDropArea = document.getElementById('text-drop-area');
             const textFileInput = document.getElementById('text-file-input');
             const deleteTextBtn = document.getElementById('delete-text-btn');
@@ -347,202 +354,137 @@
             const saveSettingsBtn = document.getElementById('btn-save-settings');
             const loadSettingsBtn = document.getElementById('btn-load-settings');
             const settingsFileInput = document.getElementById('settings-file-input');
-            const resetFieldSettingsBtn = document.getElementById('reset-field-settings');
-            const resetRandomSettingsBtn = document.getElementById('reset-random-settings');
             const fontSelectAllBtn = document.getElementById('font-select-all');
             const fontDeselectAllBtn = document.getElementById('font-deselect-all');
+            const textEditorContainer = document.getElementById('text-editor-container');
+            const textEditor = document.getElementById('text-editor');
+            const textEditorOkBtn = document.getElementById('text-editor-ok');
 
             // --- 状態管理 ---
             let textLines = [];
             let bgImage = null;
             let lastGeneratedLayout = [];
             const fontList = [
-                { name: 'Noto Sans JP', value: 'Noto Sans JP' },
-                { name: 'Zen Kaku Gothic New', value: 'Zen Kaku Gothic New' },
-                { name: 'M PLUS Rounded 1c', value: 'M PLUS Rounded 1c' },
-                { name: 'BIZ UDPGothic', value: 'BIZ UDPGothic' },
-                { name: 'Kosugi Maru', value: 'Kosugi Maru' },
-                { name: 'さわらびゴシック', value: 'Sawarabi Gothic' },
-                { name: 'Shippori Mincho', value: 'Shippori Mincho' },
-                { name: 'Hina Mincho', value: 'Hina Mincho' },
-                { name: 'Yuji Syuku', value: 'Yuji Syuku' },
-                { name: 'Kaisei Opti', value: 'Kaisei Opti' },
-                { name: 'Kaisei Decol', value: 'Kaisei Decol' },
-                { name: 'Kiwi Maru', value: 'Kiwi Maru' },
-                { name: 'Yusei Magic', value: 'Yusei Magic' },
-                { name: 'DotGothic16', value: 'DotGothic16' },
-                { name: 'Dela Gothic One', value: 'Dela Gothic One' },
-                { name: 'Mochiy Pop One', value: 'Mochiy Pop One' },
-                { name: 'Potta One', value: 'Potta One' },
-                { name: 'RocknRoll One', value: 'RocknRoll One' },
+                'Noto Sans JP', 'Zen Kaku Gothic New', 'M PLUS Rounded 1c', 'BIZ UDPGothic', 
+                'Kosugi Maru', 'Sawarabi Gothic', 'Shippori Mincho', 'Hina Mincho', 'Yuji Syuku', 
+                'Kaisei Opti', 'Kaisei Decol', 'Kiwi Maru', 'Yusei Magic', 'DotGothic16', 
+                'Dela Gothic One', 'Mochiy Pop One', 'Potta One', 'RocknRoll One',
+                'Klee One', 'Stick', 'Rampart One', 'Train One', 'Zen Maru Gothic', 'Yomogi'
             ];
+            let currentLang = 'ja';
+
+            // --- ドラッグ＆ドロップ編集用の状態 ---
+            let selectedTextIndex = -1;
+            let isDragging = false;
+            let dragOffsetX, dragOffsetY;
+            let isEditing = false;
 
             // --- UI翻訳データ ---
             const translations = {
                 'ja': {
-                    'app-title': 'ランダム文字配置メーカー',
-                    'btn-image-output': '画像出力',
-                    'btn-help': '操作説明',
-                    'btn-save': '設定を保存',
-                    'btn-load': '設定を読込',
-                    'lang-switch': 'English',
-                    'text-drop-area': 'テキストファイルをここにドロップ',
-                    'delete-text': 'テキストを削除',
-                    'delete-bg-image': '背景画像を削除',
-                    'generate-btn': '画像を作成',
-                    'accordion-field': 'フィールド設定',
-                    'accordion-font': 'フォント設定（使用選択）',
-                    'canvas-size': '画面サイズ',
-                    'bg-color': '背景色',
-                    'bg-image-drop-area': '背景画像をドロップ',
-                    'bg-opacity': '背景画像の透過度',
-                    'bg-scale': '背景画像の拡大縮小',
-                    'accordion-random': 'ランダム処理の設定',
-                    'mode-specify': '指定',
-                    'mode-random': 'ランダム',
-                    'mode-random-short': 'ランダム',
-                    'font-color': '文字色',
-                    'font-bold': '太字',
-                    'font-italic': '斜体',
-                    'font-shadow': '影',
-                    'font-stroke': '縁取り',
-                    'font-stroke-color': '縁取りの色',
-                    'font-size': 'フォントサイズ (最小 - 最大)',
-                    'text-opacity': '文字の透過率',
-                    'writing-mode': '縦書きの比率',
-                    'text-order': '文字の順序',
-                    'wrap-text': 'テキストを画像内で折り返す',
-                    'order-top': '上から',
-                    'order-bottom': '下から',
-                    'order-random': 'ランダム',
-                    'text-placement': '画面内の文章の配置',
-                    'placement-random': 'ランダム',
-                    'placement-soft': 'ソフト',
-                    'placement-avoid': '重複を避ける',
-                    'panel-title-output': '画像出力',
-                    'btn-back': '戻る',
-                    'output-format': 'フォーマット',
-                    'btn-download': 'ダウンロード',
-                    'panel-title-help': '操作説明',
-                    'initial-text': 'ここに画像が生成されます',
-                    'unplaced-text': '{count}個の文章を配置できませんでした。',
-                    'reset-settings': '設定をリセット',
+                    'app-title': 'ランダム文字配置メーカー', 'btn-image-output': '画像出力', 'btn-help': '操作説明',
+                    'btn-save': '保存', 'btn-load': '呼出', 'lang-switch': 'English',
+                    'text-drop-area': 'テキストファイル(.txt)をここにドロップ<br>またはクリックして選択',
+                    'delete-text': 'テキストを削除', 'delete-bg-image': '背景画像を削除', 'generate-btn': '作成',
+                    'accordion-field': 'フィールド設定', 'accordion-font': 'フォント設定', 'canvas-size': '画面サイズ',
+                    'bg-color': '背景色', 'bg-image-drop-area': '背景画像をドロップ',
+                    'bg-opacity': '背景画像の透過度', 'bg-scale': '背景画像の拡大縮小',
+                    'accordion-random': 'ランダム処理の設定', 'mode-specify': '指定', 'mode-random': 'ランダム',
+                    'mode-random-short': 'R', 'font-color': '文字色', 'font-bold': '太字', 'font-italic': '斜体',
+                    'font-shadow': '影', 'font-stroke': '縁取り', 'font-stroke-color': '縁取りの色',
+                    'font-size': 'フォントサイズ (最小 - 最大)', 'writing-mode': '縦書きの比率',
+                    'text-order': '文字の順序 (レイヤー)', 'order-top': '上から', 'order-bottom': '下から',
+                    'order-random': 'ランダム', 'text-placement': '画面内の配置', 'placement-random': 'ランダム',
+                    'placement-soft': 'ソフト', 'placement-avoid': '重複を避ける', 'panel-title-output': '画像出力', 'btn-back': '戻る',
+                    'output-format': 'フォーマット', 'btn-download': 'ダウンロード', 'panel-title-help': '操作説明',
+                    'initial-text': 'ここに画像が生成されます', 'unplaced-text': '{count}個の文章を配置できませんでした。',
                     'help-content': `
                         <p><b>1. テキストを用意する</b></p>
-                        <p>左上のエリアにテキストファイル (.txt) をドラッグ＆ドロップします(メモ帳のファイル)。テキストファイル内の改行と改行の間の文字が、一つの文章として認識されます。</p>
+                        <p>左上のエリアにテキストファイル (.txt) をドラッグ＆ドロップします。ファイル内の改行が、一つの文章として認識されます。</p>
                         <p><b>2. 設定を調整する</b></p>
-                        <p>各アコーディオンを開き、背景や文字のスタイル、ランダム化のルールを自由に調整できます。</p>
-                        <p><b>3. 画像を生成する</b></p>
-                        <p>「画像を作成」ボタンを押すと、右側のフィールドに文章がランダムに配置されます。「文章を配置できませんでした」と表示された場合は、<b>[画面内の文章の配置]</b>を「ランダム」か「ソフト」に変更するか、<b>[フォントサイズ]</b>を小さくしてみてください。</p>
-                        <p><b>4. 設定を保存・呼び出しする</b></p>
-                        <p>ヘッダーの「設定を保存」ボタンで、現在の設定をファイルとしてダウンロードできます。「設定を読込」で、そのファイルを読み込んで設定を復元できます。</p>
-                        <p><b>5. 画像を出力する</b></p>
+                        <p>各項目を開き、背景や文字のスタイル、ランダム化のルールを自由に調整できます。</p>
+                        <p><b>3. 作成ボタンを押す</b></p>
+                        <p>「作成」ボタンで、右側のフィールドに文章がランダムに配置されます。配置後に各文章をドラッグして位置を微調整できます。</p>
+                        <p><b>4. テキストを編集する</b></p>
+                        <p>キャンバス上のテキストをダブルクリックすると、その場で内容を編集できます。</p>
+                        <p><b>5. 保存・呼出</b></p>
+                        <p>「保存」で現在の設定をファイルとして保存し、「呼出」でそのファイルを読み込んで設定を復元できます。</p>
+                        <p><b>6. 画像を出力する</b></p>
                         <p>「画像出力」ボタンでパネルを切り替え、好きなフォーマットで画像をダウンロードできます。</p>
                     `
                 },
                 'en': {
-                    'app-title': 'Random Text Placer',
-                    'btn-image-output': 'Export Image',
-                    'btn-help': 'Help',
-                    'btn-save': 'Save Settings',
-                    'btn-load': 'Load Settings',
-                    'lang-switch': '日本語',
-                    'text-drop-area': 'Drop text file here',
-                    'delete-text': 'Delete text',
-                    'delete-bg-image': 'Delete background image',
-                    'generate-btn': 'Generate Image',
-                    'accordion-field': 'Field Settings',
-                    'accordion-font': 'Font Settings (Select to use)',
-                    'canvas-size': 'Canvas Size',
-                    'bg-color': 'Background Color',
-                    'bg-image-drop-area': 'Drop background image here',
-                    'bg-opacity': 'Background Image Opacity',
-                    'bg-scale': 'Background Image Scale',
-                    'accordion-random': 'Randomization Settings',
-                    'mode-specify': 'Specify',
-                    'mode-random': 'Random',
-                    'mode-random-short': 'Random',
-                    'font-color': 'Font Color',
-                    'font-bold': 'Bold',
-                    'font-italic': 'Italic',
-                    'font-shadow': 'Shadow',
-                    'font-stroke': 'Stroke',
-                    'font-stroke-color': 'Stroke Color',
-                    'font-size': 'Font Size (Min - Max)',
-                    'text-opacity': 'Text Opacity',
-                    'writing-mode': 'Vertical Text Ratio',
-                    'text-order': 'Text Order',
-                    'wrap-text': 'Wrap text within image',
-                    'order-top': 'Top to Bottom',
-                    'order-bottom': 'Bottom to Top',
-                    'order-random': 'Random',
-                    'text-placement': 'Sentence Placement',
-                    'placement-random': 'Random',
-                    'placement-soft': 'Soft',
-                    'placement-avoid': 'Avoid Overlap',
-                    'panel-title-output': 'Export Image',
-                    'btn-back': 'Back',
-                    'output-format': 'Format',
-                    'btn-download': 'Download',
-                    'panel-title-help': 'Instructions',
-                    'initial-text': 'Image will be generated here',
-                    'unplaced-text': 'Could not place {count} sentences.',
-                    'reset-settings': 'Reset Settings',
+                    'app-title': 'Random Text Placer', 'btn-image-output': 'Export', 'btn-help': 'Help',
+                    'btn-save': 'Save', 'btn-load': 'Load', 'lang-switch': '日本語',
+                    'text-drop-area': 'Drop text file (.txt) here<br>or click to select',
+                    'delete-text': 'Delete text', 'delete-bg-image': 'Delete background image', 'generate-btn': 'Generate',
+                    'accordion-field': 'Field Settings', 'accordion-font': 'Font Settings', 'canvas-size': 'Canvas Size',
+                    'bg-color': 'Background Color', 'bg-image-drop-area': 'Drop background image',
+                    'bg-opacity': 'BG Image Opacity', 'bg-scale': 'BG Image Scale',
+                    'accordion-random': 'Randomization Settings', 'mode-specify': 'Specify', 'mode-random': 'Random',
+                    'mode-random-short': 'R', 'font-color': 'Font Color', 'font-bold': 'Bold', 'font-italic': 'Italic',
+                    'font-shadow': 'Shadow', 'font-stroke': 'Stroke', 'font-stroke-color': 'Stroke Color',
+                    'font-size': 'Font Size (Min - Max)', 'writing-mode': 'Vertical Ratio',
+                    'text-order': 'Text Order (Layer)', 'order-top': 'Top-down', 'order-bottom': 'Bottom-up',
+                    'order-random': 'Random', 'text-placement': 'Placement', 'placement-random': 'Random',
+                    'placement-soft': 'Soft', 'placement-avoid': 'Avoid Overlap', 'panel-title-output': 'Export Image', 'btn-back': 'Back',
+                    'output-format': 'Format', 'btn-download': 'Download', 'panel-title-help': 'Instructions',
+                    'initial-text': 'Image will be generated here', 'unplaced-text': 'Could not place {count} sentences.',
                     'help-content': `
-                        <p><b>1. Prepare Your Text</b></p>
-                        <p>Drag and drop a text file (.txt) into the area on the top left. The text between line breaks will be treated as a single sentence.</p>
+                        <p><b>1. Prepare Text</b></p>
+                        <p>Drag & drop a text file (.txt) into the top-left area. Each line break creates a new sentence.</p>
                         <p><b>2. Adjust Settings</b></p>
-                        <p>Open the accordions to freely customize the background, text styles, and randomization rules.</p>
-                        <p><b>3. Generate the Image</b></p>
-                        <p>Press the "Generate Image" button to randomly place the sentences on the canvas. If you see a "Could not place sentences" message, try changing the <b>[Sentence Placement]</b> mode to "Random" or "Soft", or reduce the <b>[Font Size]</b>.</p>
-                        <p><b>4. Save & Load Settings</b></p>
-                        <p>You can download the current settings as a file using the "Save Settings" button in the header. Use "Load Settings" to restore them from a file.</p>
-                        <p><b>5. Export Your Image</b></p>
-                        <p>Click the "Export Image" button to switch panels and download the image in your desired format.</p>
+                        <p>Open each section to customize the background, text styles, and randomization rules.</p>
+                        <p><b>3. Generate</b></p>
+                        <p>Press "Generate" to place text on the canvas. You can then drag each sentence to adjust its position.</p>
+                        <p><b>4. Edit Text</b></p>
+                        <p>Double-click any text on the canvas to edit its content directly.</p>
+                        <p><b>5. Save & Load</b></p>
+                        <p>Use "Save" to download your current settings, and "Load" to restore them from a file.</p>
+                        <p><b>6. Export Image</b></p>
+                        <p>Click "Export", choose a format, and download your final image.</p>
                     `
                 }
             };
-            let currentLang = 'ja';
 
             // --- UI初期化 ---
             function populateFontList() {
                 const container = document.getElementById('font-selection-list');
-                container.innerHTML = ''; // Clear existing
+                container.innerHTML = '';
                 fontList.forEach(font => {
                     const div = document.createElement('div');
                     div.className = 'flex items-center justify-between text-sm pb-2 mb-2 border-b border-gray-200';
                     div.innerHTML = `
                         <div class="flex items-center">
-                            <input type="checkbox" id="font-check-${font.value.replace(/\s/g, '')}" name="font-choice" value="${font.value}" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 save-state">
-                            <label for="font-check-${font.value.replace(/\s/g, '')}" class="ml-2">${font.name}</label>
+                            <input type="checkbox" id="font-check-${font.replace(/\s/g, '')}" value="${font}" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 save-state">
+                            <label for="font-check-${font.replace(/\s/g, '')}" class="ml-2">${font}</label>
                         </div>
-                        <span style="font-family: '${font.value}', sans-serif; font-size: 20px;">M邪もジャ3！？</span>
+                        <span style="font-family: '${font}', sans-serif; font-size: 18px;">Aa亜あア！？</span>
                     `;
                     container.appendChild(div);
                 });
             }
 
             // --- イベントリスナー ---
-
             // アコーディオン
             document.querySelectorAll('.accordion-toggle').forEach(button => {
                 button.addEventListener('click', () => {
+                    document.querySelectorAll('.accordion-content').forEach(otherContent => {
+                        if (otherContent !== document.querySelector(button.dataset.target)) {
+                            otherContent.style.maxHeight = null;
+                        }
+                    });
                     const content = document.querySelector(button.dataset.target);
-                    if (content.style.maxHeight) {
-                        content.style.maxHeight = null;
-                    } else {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                    }
+                    content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
                 });
             });
 
             // フォントサイズスライダーの値表示
-            const fontSizeMin = document.getElementById('font-size-min');
-            const fontSizeMax = document.getElementById('font-size-max');
-            const fontSizeMinVal = document.getElementById('font-size-min-val');
-            const fontSizeMaxVal = document.getElementById('font-size-max-val');
-            fontSizeMin.addEventListener('input', () => fontSizeMinVal.textContent = fontSizeMin.value);
-            fontSizeMax.addEventListener('input', () => fontSizeMaxVal.textContent = fontSizeMax.value);
+            ['min', 'max'].forEach(type => {
+                const slider = document.getElementById(`font-size-${type}`);
+                const display = document.getElementById(`font-size-${type}-val`);
+                slider.addEventListener('input', () => display.textContent = slider.value);
+            });
 
             // ファイルドロップ共通処理
             const setupDropArea = (area, input, onFileLoad) => {
@@ -571,13 +513,13 @@
                 };
                 reader.readAsText(file);
             });
-            
             deleteTextBtn.addEventListener('click', () => {
                 textLines = [];
                 textFileInput.value = '';
-                textDropArea.querySelector('span').textContent = translations[currentLang]['text-drop-area'];
+                textDropArea.querySelector('span').innerHTML = translations[currentLang]['text-drop-area'];
                 deleteTextBtn.classList.add('hidden');
-                generateAndRedraw();
+                lastGeneratedLayout = [];
+                redrawCanvas();
             });
 
             // 背景画像のドロップ
@@ -594,7 +536,6 @@
                 };
                 reader.readAsDataURL(file);
             });
-
             deleteBgImageBtn.addEventListener('click', () => {
                 bgImage = null;
                 bgImageInput.value = '';
@@ -604,25 +545,16 @@
             });
             
             // パネル切り替え
-            const panels = {
-                settings: document.getElementById('settings-panel'),
-                output: document.getElementById('image-output-panel'),
-                help: document.getElementById('help-panel')
-            };
-            const headerBtns = {
-                output: document.getElementById('btn-image-output'),
-                help: document.getElementById('btn-help')
-            };
-
+            const panels = { settings: document.getElementById('settings-panel'), output: document.getElementById('image-output-panel'), help: document.getElementById('help-panel') };
+            const headerBtns = { output: document.getElementById('btn-image-output'), help: document.getElementById('btn-help') };
             const switchPanel = (panelName) => {
                 Object.values(panels).forEach(p => p.classList.add('hidden'));
                 if(panels[panelName]) panels[panelName].classList.remove('hidden');
-                headerBtns.output.classList.remove('active', 'active-purple');
-                headerBtns.help.classList.remove('active', 'active-green');
-                if (panelName === 'output') headerBtns.output.classList.add('active', 'active-purple');
-                else if (panelName === 'help') headerBtns.help.classList.add('active', 'active-green');
+                headerBtns.output.classList.remove('active-purple');
+                headerBtns.help.classList.remove('active-green');
+                if (panelName === 'output') headerBtns.output.classList.add('active-purple');
+                else if (panelName === 'help') headerBtns.help.classList.add('active-green');
             };
-
             headerBtns.output.addEventListener('click', () => switchPanel('output'));
             headerBtns.help.addEventListener('click', () => switchPanel('help'));
             document.querySelectorAll('.panel-back-btn').forEach(btn => btn.addEventListener('click', () => switchPanel('settings')));
@@ -632,102 +564,63 @@
             const switchLanguage = (lang) => {
                 currentLang = lang;
                 document.documentElement.lang = lang;
-                const translationData = translations[lang];
-                document.querySelectorAll('[data-lang]').forEach(el => {
-                    const key = el.dataset.lang;
-                    if (translationData[key]) el.textContent = translationData[key];
-                });
-                 document.querySelectorAll('[data-lang-html]').forEach(el => {
-                    const key = el.dataset.langHtml;
-                    if (translationData[key]) el.innerHTML = translationData[key];
-                });
-                langSwitchBtn.textContent = translationData['lang-switch'];
+                const data = translations[lang];
+                document.querySelectorAll('[data-lang]').forEach(el => el.textContent = data[el.dataset.lang] || el.textContent);
+                document.querySelectorAll('[data-lang-html]').forEach(el => el.innerHTML = data[el.dataset.langHtml] || el.innerHTML);
+                langSwitchBtn.textContent = data['lang-switch'];
+                redrawCanvas();
             };
-
             langSwitchBtn.addEventListener('click', () => switchLanguage(currentLang === 'ja' ? 'en' : 'ja'));
 
             // リアルタイム更新
-            document.querySelectorAll('.realtime-update').forEach(el => {
-                el.addEventListener('input', () => redrawCanvas());
-            });
+            document.querySelectorAll('.realtime-update').forEach(el => el.addEventListener('input', redrawCanvas));
             
-            generateBtn.addEventListener('click', generateAndRedraw);
+            generateBtn.addEventListener('click', generateLayout);
 
-            function generateAndRedraw() {
+            // --- メインロジック ---
+            function generateLayout() {
                 notificationArea.classList.add('hidden');
-                lastGeneratedLayout = []; // Clear previous layout
+                lastGeneratedLayout = [];
                 
                 const settings = getSettings();
                 const activeFonts = getActiveFonts();
 
-                let linesToDraw = [...textLines];
-                if (linesToDraw.length === 0) {
+                if (textLines.length === 0 || activeFonts.length === 0) {
                     redrawCanvas();
                     return;
                 }
+
+                let linesToDraw = [...textLines];
                 if (settings.textOrder === 'bottom') linesToDraw.reverse();
                 if (settings.textOrder === 'random') linesToDraw.sort(() => Math.random() - 0.5);
                 
-                // New: Sort by length descending
-                linesToDraw.sort((a, b) => b.length - a.length);
-                const maxLength = linesToDraw.length > 0 ? linesToDraw[0].length : 0;
-
                 const placedRects = [];
-                let placedLinesCount = 0;
+                let unplacedCount = 0;
 
                 linesToDraw.forEach(line => {
-                    const lineStyle = {};
-                    lineStyle.fontFamily = activeFonts[Math.floor(Math.random() * activeFonts.length)];
-                    lineStyle.fontColor = settings.fontColorMode === 'random' ? getRandomColor() : (settings.fontColors.length > 0 ? settings.fontColors[Math.floor(Math.random() * settings.fontColors.length)] : '#000000');
-                    lineStyle.fontStrokeColor = settings.fontStrokeColorMode === 'random' ? getRandomColor() : (settings.fontStrokeColors.length > 0 ? settings.fontStrokeColors[Math.floor(Math.random() * settings.fontStrokeColors.length)] : '#FFFFFF');
-                    
-                    const getBoolStyle = (mode) => (mode === 'on') ? true : (mode === 'off') ? false : Math.random() < 0.5;
-                    lineStyle.fontBold = getBoolStyle(settings.fontBoldMode);
-                    lineStyle.fontItalic = getBoolStyle(settings.fontItalicMode);
-                    lineStyle.fontShadow = getBoolStyle(settings.fontShadowMode);
-                    lineStyle.fontStroke = getBoolStyle(settings.fontStrokeMode);
-                    
-                    lineStyle.opacity = settings.textOpacityMode === 'random' ? Math.random() : settings.textOpacity;
-
-                    // New: Bias font size based on length
-                    const lengthRatio = maxLength > 0 ? line.length / maxLength : 0;
-                    const sizeRange = settings.fontSizeMax - settings.fontSizeMin;
-                    const reduction = lengthRatio * sizeRange * 0.5; // Bias factor: 0.5
-                    const effectiveMax = Math.max(settings.fontSizeMin, settings.fontSizeMax - reduction);
-                    const fontSize = Math.random() * (effectiveMax - settings.fontSizeMin) + settings.fontSizeMin;
-
+                    const style = {
+                        fontFamily: activeFonts[Math.floor(Math.random() * activeFonts.length)],
+                        fontColor: settings.fontColorMode === 'random' ? getRandomColor() : settings.fontColors[Math.floor(Math.random() * settings.fontColors.length)],
+                        fontStrokeColor: settings.fontStrokeColorMode === 'random' ? getRandomColor() : settings.fontStrokeColors[Math.floor(Math.random() * settings.fontStrokeColors.length)],
+                        fontBold: (settings.fontBoldMode === 'on') ? true : (settings.fontBoldMode === 'off') ? false : Math.random() < 0.5,
+                        fontItalic: (settings.fontItalicMode === 'on') ? true : (settings.fontItalicMode === 'off') ? false : Math.random() < 0.5,
+                        fontShadow: (settings.fontShadowMode === 'on') ? true : (settings.fontShadowMode === 'off') ? false : Math.random() < 0.5,
+                        fontStroke: (settings.fontStrokeMode === 'on') ? true : (settings.fontStrokeMode === 'off') ? false : Math.random() < 0.5,
+                    };
+                    const fontSize = Math.random() * (settings.fontSizeMax - settings.fontSizeMin) + settings.fontSizeMin;
                     const isVertical = Math.random() * 100 < settings.verticalRatio;
 
                     // 位置決め
                     let bestPosition = null;
                     let minOverlap = Infinity;
-
-                    let maxAttempts;
-                    if (settings.textPlacement === 'avoid-overlap') maxAttempts = 100;
-                    else if (settings.textPlacement === 'soft-avoid') maxAttempts = 50;
-                    else maxAttempts = 1;
+                    const maxAttempts = settings.textPlacement === 'avoid-overlap' ? 200 : (settings.textPlacement === 'soft-avoid' ? 50 : 1);
 
                     for (let i = 0; i < maxAttempts; i++) {
-                        let currentRect, currentX, currentY;
+                        const metrics = getMetrics(line, fontSize, style, isVertical);
                         
-                        ctx.font = `${lineStyle.fontItalic ? 'italic ' : ''}${lineStyle.fontBold ? 'bold ' : ''} ${fontSize}px "${lineStyle.fontFamily}"`;
-                        
-                        let textBlock;
-
-                        if (isVertical) {
-                            textBlock = getVerticalTextBlock(line, fontSize, settings.height, settings.wrapText);
-                        } else {
-                            textBlock = getHorizontalTextBlock(ctx, line, fontSize, settings.width, settings.wrapText);
-                        }
-
-                        const shadowOffset = lineStyle.fontShadow ? 5 : 0;
-                        const textWidth = textBlock.width + shadowOffset;
-                        const textHeight = textBlock.height + shadowOffset;
-                        
-                        currentX = Math.random() * (settings.width - textWidth);
-                        currentY = Math.random() * (settings.height - textHeight);
-                        
-                        currentRect = { x: currentX, y: currentY, width: textWidth, height: textHeight };
+                        const x = Math.random() * (settings.width - metrics.width);
+                        const y = Math.random() * (settings.height - metrics.height);
+                        const currentRect = { x, y, width: metrics.width, height: metrics.height };
 
                         if (settings.textPlacement === 'soft-avoid') {
                             let currentOverlap = 0;
@@ -736,38 +629,31 @@
                             }
                             if (currentOverlap < minOverlap) {
                                 minOverlap = currentOverlap;
-                                bestPosition = { rect: currentRect, x: currentX, y: currentY, textBlock: textBlock };
+                                bestPosition = { x, y, rect: currentRect };
                             }
                             if (minOverlap === 0) break;
                         } else { // 'random' or 'avoid-overlap'
                             if (!isOverlapping(currentRect, placedRects)) {
-                                bestPosition = { rect: currentRect, x: currentX, y: currentY, textBlock: textBlock };
+                                bestPosition = { x, y, rect: currentRect };
                                 break;
                             }
                             if (settings.textPlacement === 'random') {
-                                bestPosition = { rect: currentRect, x: currentX, y: currentY, textBlock: textBlock };
+                                bestPosition = { x, y, rect: currentRect };
                                 break;
                             }
                         }
                     }
 
                     if (bestPosition) {
-                        placedLinesCount++;
-                        lastGeneratedLayout.push({
-                            line: line,
-                            style: lineStyle,
-                            fontSize: fontSize,
-                            isVertical: isVertical,
-                            position: bestPosition
-                        });
+                        lastGeneratedLayout.push({ line, style, fontSize, isVertical, position: bestPosition });
                         placedRects.push(bestPosition.rect);
+                    } else if (settings.textPlacement !== 'random') {
+                        unplacedCount++;
                     }
                 });
 
-                const unplacedCount = linesToDraw.length - placedLinesCount;
-                if (unplacedCount > 0 && settings.textPlacement === 'avoid-overlap') {
-                    const message = translations[currentLang]['unplaced-text'].replace('{count}', unplacedCount);
-                    notificationArea.textContent = message;
+                if (unplacedCount > 0) {
+                    notificationArea.textContent = translations[currentLang]['unplaced-text'].replace('{count}', unplacedCount);
                     notificationArea.classList.remove('hidden');
                 }
 
@@ -780,18 +666,21 @@
                 canvas.height = settings.height;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+                // 背景色を先に描画
+                ctx.fillStyle = settings.bgColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 背景画像を次に描画
                 if (bgImage) {
                     ctx.globalAlpha = settings.bgOpacity;
                     const w = bgImage.width * settings.bgScale;
                     const h = bgImage.height * settings.bgScale;
                     ctx.drawImage(bgImage, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+                    ctx.globalAlpha = 1.0;
                 }
                 
-                ctx.globalAlpha = 1.0;
-                ctx.fillStyle = hexToRgba(settings.bgColor, settings.bgColorOpacity);
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                if (lastGeneratedLayout.length === 0 && textLines.length === 0) {
+                // 初期メッセージ
+                if (lastGeneratedLayout.length === 0) {
                     ctx.font = "24px 'Noto Sans JP'";
                     ctx.fillStyle = "#AAAAAA";
                     ctx.textAlign = "center";
@@ -800,62 +689,49 @@
                     return;
                 }
 
+                // テキスト描画
                 lastGeneratedLayout.forEach(item => {
-                    const { style, fontSize, isVertical, position } = item;
+                    const { line, style, fontSize, isVertical, position } = item;
                     
-                    ctx.globalAlpha = style.opacity;
-                    let fontStyleStr = `${style.fontItalic ? 'italic ' : ''}${style.fontBold ? 'bold ' : ''}`;
-                    ctx.font = `${fontStyleStr} ${fontSize}px "${style.fontFamily}"`;
+                    ctx.font = `${style.fontItalic ? 'italic ' : ''}${style.fontBold ? 'bold ' : ''} ${fontSize}px "${style.fontFamily}"`;
                     ctx.fillStyle = style.fontColor;
                     ctx.strokeStyle = style.fontStrokeColor;
                     ctx.lineWidth = 2;
                     ctx.shadowColor = style.fontShadow ? 'rgba(0, 0, 0, 0.5)' : 'transparent';
-                    if (style.fontShadow) {
-                        ctx.shadowBlur = 5;
-                        ctx.shadowOffsetX = 2;
-                        ctx.shadowOffsetY = 2;
-                    } else {
-                        ctx.shadowBlur = 0;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 0;
-                    }
-
+                    ctx.shadowBlur = style.fontShadow ? 5 : 0;
+                    ctx.shadowOffsetX = style.fontShadow ? 2 : 2;
+                    ctx.shadowOffsetY = style.fontShadow ? 2 : 2;
+                    
                     if (isVertical) {
-                        drawVerticalText(position.textBlock.lines, position.x, position.y, fontSize, style);
+                        drawVerticalText(item);
                     } else {
-                        position.textBlock.lines.forEach((wrappedLine, index) => {
-                            const lineY = position.y + fontSize + (index * fontSize);
-                            if (style.fontStroke) ctx.strokeText(wrappedLine, position.x, lineY);
-                            ctx.fillText(wrappedLine, position.x, lineY);
-                        });
+                        drawHorizontalWrappedText(item);
                     }
                 });
-                ctx.globalAlpha = 1.0;
+                // シャドウをリセット
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
             }
 
+            // --- ヘルパー関数 ---
             function getSettings() {
-                const fontColorPickers = document.querySelectorAll('#font-color-pickers input[type="color"]:not(:disabled)');
-                const fontStrokeColorPickers = document.querySelectorAll('#font-stroke-color-pickers input[type="color"]:not(:disabled)');
+                const getColors = (type) => Array.from(document.querySelectorAll(`#${type}-pickers input[type="color"]:not(:disabled)`)).map(p => p.value);
                 return {
                     width: parseInt(document.getElementById('canvas-width').value, 10),
                     height: parseInt(document.getElementById('canvas-height').value, 10),
                     bgColor: document.getElementById('bg-color').value,
-                    bgColorOpacity: parseFloat(document.getElementById('bg-color-opacity').value),
                     bgOpacity: parseFloat(document.getElementById('bg-opacity').value),
-                    bgScale: parseFloat(document.getElementById('bg-scale').value, 10),
+                    bgScale: parseFloat(document.getElementById('bg-scale').value),
                     fontColorMode: document.querySelector('input[name="font-color-mode"]:checked').value,
                     fontStrokeColorMode: document.querySelector('input[name="font-stroke-color-mode"]:checked').value,
                     fontBoldMode: document.querySelector('input[name="font-bold-mode"]:checked').value,
                     fontItalicMode: document.querySelector('input[name="font-italic-mode"]:checked').value,
                     fontShadowMode: document.querySelector('input[name="font-shadow-mode"]:checked').value,
                     fontStrokeMode: document.querySelector('input[name="font-stroke-mode"]:checked').value,
-                    textOpacityMode: document.querySelector('input[name="text-opacity-mode"]:checked').value,
-                    wrapText: document.getElementById('wrap-text').checked,
-                    fontColors: Array.from(fontColorPickers).map(picker => picker.value),
-                    fontStrokeColors: Array.from(fontStrokeColorPickers).map(picker => picker.value),
-                    fontColorCount: parseInt(document.getElementById('font-color-count').value, 10),
-                    fontStrokeColorCount: parseInt(document.getElementById('font-stroke-color-count').value, 10),
-                    textOpacity: parseFloat(document.getElementById('text-opacity').value),
+                    fontColors: getColors('font-color').length > 0 ? getColors('font-color') : ['#000000'],
+                    fontStrokeColors: getColors('font-stroke-color').length > 0 ? getColors('font-stroke-color') : ['#FFFFFF'],
                     fontSizeMin: parseInt(document.getElementById('font-size-min').value, 10),
                     fontSizeMax: parseInt(document.getElementById('font-size-max').value, 10),
                     verticalRatio: parseInt(document.getElementById('vertical-ratio').value, 10),
@@ -865,91 +741,90 @@
             }
             
             function getActiveFonts() {
-                const checkedFonts = Array.from(document.querySelectorAll('input[name="font-choice"]:checked')).map(cb => cb.value);
-                return checkedFonts.length > 0 ? checkedFonts : ['Noto Sans JP'];
+                const checked = Array.from(document.querySelectorAll('#font-selection-list input:checked')).map(cb => cb.value);
+                return checked.length > 0 ? checked : ['Noto Sans JP'];
             }
             
-            function hexToRgba(hex, alpha) {
-                const r = parseInt(hex.slice(1, 3), 16);
-                const g = parseInt(hex.slice(3, 5), 16);
-                const b = parseInt(hex.slice(5, 7), 16);
-                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-            }
-
-            function calculateOverlapArea(rect1, rect2) {
-                const x_overlap = Math.max(0, Math.min(rect1.x + rect1.width, rect2.x + rect2.width) - Math.max(rect1.x, rect2.x));
-                const y_overlap = Math.max(0, Math.min(rect1.y + rect1.height, rect2.y + rect2.height) - Math.max(rect1.y, rect2.y));
-                return x_overlap * y_overlap;
-            }
-
             function getRandomColor() { return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'); }
 
-            function getHorizontalTextBlock(ctx, text, fontSize, maxWidth, wrap) {
-                let lines;
-                if(wrap) {
-                    const words = text.split('');
-                    lines = [];
+            function getMetrics(text, fontSize, style, isVertical) {
+                ctx.font = `${style.fontItalic ? 'italic ' : ''}${style.fontBold ? 'bold ' : ''} ${fontSize}px "${style.fontFamily}"`;
+                const lines = text.split('\n');
+                if (isVertical) {
+                    const height = Math.max(...lines.map(l => l.length)) * fontSize;
+                    const width = lines.length * fontSize;
+                    return { width, height };
+                } else {
+                    const width = Math.max(...lines.map(l => ctx.measureText(l).width));
+                    const height = lines.length * fontSize * 1.2; // 行間を考慮
+                    return { width, height };
+                }
+            }
+            
+            function drawHorizontalWrappedText(item) {
+                const { line, style, fontSize, position } = item;
+                const { x, y, rect } = position;
+                const maxWidth = rect.width;
+                const lineHeight = fontSize * 1.2;
+
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+
+                const paragraphs = line.split('\n');
+                let currentY = y;
+
+                for (const paragraph of paragraphs) {
+                    if (paragraph === '') {
+                        currentY += lineHeight;
+                        continue;
+                    }
                     let currentLine = '';
+                    const words = paragraph.split('');
                     for (let i = 0; i < words.length; i++) {
                         const testLine = currentLine + words[i];
-                        if (ctx.measureText(testLine).width > maxWidth && i > 0) {
-                            lines.push(currentLine);
+                        if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
+                            if (style.fontStroke) ctx.strokeText(currentLine, x, currentY);
+                            ctx.fillText(currentLine, x, currentY);
                             currentLine = words[i];
+                            currentY += lineHeight;
                         } else {
                             currentLine = testLine;
                         }
                     }
-                    lines.push(currentLine);
-                } else {
-                    lines = [text];
+                    if (style.fontStroke) ctx.strokeText(currentLine, x, currentY);
+                    ctx.fillText(currentLine, x, currentY);
+                    currentY += lineHeight;
                 }
-                const width = Math.max(...lines.map(l => ctx.measureText(l).width));
-                const height = lines.length * fontSize;
-                return { lines, width, height };
             }
 
-            function getVerticalTextBlock(text, fontSize, maxHeight, wrap) {
-                let columns;
-                if(wrap && text.length * fontSize > maxHeight) {
-                    const splitPoint = Math.ceil(text.length / 2);
-                    columns = [text.substring(0, splitPoint), text.substring(splitPoint)];
-                } else {
-                    columns = [text];
-                }
-                const width = columns.length * fontSize;
-                const height = Math.max(...columns.map(c => c.length * fontSize));
-                return { lines: columns, width, height };
-            }
-
-            function drawVerticalText(columns, x, y, fontSize, lineStyle) {
+            function drawVerticalText(item) {
+                const { line, style, fontSize, position } = item;
+                const { x, y } = position;
+                const lines = line.split('\n');
                 const charsToRotate = ['ー', '…', '(', ')', '（', '）', '[', ']', '［', '］', '{', '}', '｛', '｝', '~', '～'];
-                const originalAlign = ctx.textAlign;
-                const originalBaseline = ctx.textBaseline;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                columns.forEach((text, colIndex) => {
-                    const colX = x + (columns.length - 1 - colIndex) * fontSize;
-                    for (let i = 0; i < text.length; i++) {
-                        const char = text[i];
-                        const cellCenterX = colX + fontSize / 2;
-                        const cellCenterY = y + (i * fontSize) + (fontSize / 2);
+
+                lines.forEach((line, lineIndex) => {
+                    const lineX = x + (lines.length - 1 - lineIndex) * fontSize;
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        const charX = lineX + fontSize / 2;
+                        const charY = y + (i * fontSize) + (fontSize / 2);
+
                         if (charsToRotate.includes(char)) {
                             ctx.save();
-                            ctx.translate(cellCenterX, cellCenterY);
+                            ctx.translate(charX, charY);
                             ctx.rotate(Math.PI / 2);
-                            if (lineStyle.fontStroke) ctx.strokeText(char, 0, 0);
+                            if (style.fontStroke) ctx.strokeText(char, 0, 0);
                             ctx.fillText(char, 0, 0);
                             ctx.restore();
                         } else {
-                            if (lineStyle.fontStroke) ctx.strokeText(char, cellCenterX, cellCenterY);
-                            ctx.fillText(char, cellCenterX, cellCenterY);
+                            if (style.fontStroke) ctx.strokeText(char, charX, charY);
+                            ctx.fillText(char, charX, charY);
                         }
                     }
                 });
-                
-                ctx.textAlign = originalAlign;
-                ctx.textBaseline = originalBaseline;
             }
 
             function isOverlapping(rect1, rects) {
@@ -959,7 +834,135 @@
                 return false;
             }
 
-            // ダウンロード処理
+            function calculateOverlapArea(rect1, rect2) {
+                const x_overlap = Math.max(0, Math.min(rect1.x + rect1.width, rect2.x + rect2.width) - Math.max(rect1.x, rect2.x));
+                const y_overlap = Math.max(0, Math.min(rect1.y + rect1.height, rect2.y + rect2.height) - Math.max(rect1.y, rect2.y));
+                return x_overlap * y_overlap;
+            }
+            
+            function isPointInRect(px, py, rect) {
+                return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+            }
+
+            // --- インタラクティブ機能 (ドラッグ＆編集) ---
+            canvas.addEventListener('mousedown', (e) => {
+                if (isEditing) return;
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                for (let i = lastGeneratedLayout.length - 1; i >= 0; i--) {
+                    if (isPointInRect(mouseX, mouseY, lastGeneratedLayout[i].position.rect)) {
+                        selectedTextIndex = i;
+                        isDragging = true;
+                        dragOffsetX = mouseX - lastGeneratedLayout[i].position.x;
+                        dragOffsetY = mouseY - lastGeneratedLayout[i].position.y;
+                        canvas.classList.add('dragging');
+                        return;
+                    }
+                }
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isEditing) return;
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                if (isDragging && selectedTextIndex !== -1) {
+                    const selectedItem = lastGeneratedLayout[selectedTextIndex];
+                    selectedItem.position.x = mouseX - dragOffsetX;
+                    selectedItem.position.y = mouseY - dragOffsetY;
+                    selectedItem.position.rect.x = selectedItem.position.x;
+                    selectedItem.position.rect.y = selectedItem.position.y;
+                    redrawCanvas();
+                } else {
+                    let onText = false;
+                    for (let i = lastGeneratedLayout.length - 1; i >= 0; i--) {
+                        if (isPointInRect(mouseX, mouseY, lastGeneratedLayout[i].position.rect)) {
+                            onText = true;
+                            break;
+                        }
+                    }
+                    canvas.classList.toggle('draggable', onText);
+                }
+            });
+
+            const stopDragging = () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            };
+            canvas.addEventListener('mouseup', stopDragging);
+            canvas.addEventListener('mouseout', stopDragging);
+
+            canvas.addEventListener('dblclick', (e) => {
+                if (isEditing) return;
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                for (let i = lastGeneratedLayout.length - 1; i >= 0; i--) {
+                    if (isPointInRect(mouseX, mouseY, lastGeneratedLayout[i].position.rect)) {
+                        startEditing(i);
+                        return;
+                    }
+                }
+            });
+
+            function startEditing(index) {
+                isEditing = true;
+                selectedTextIndex = index;
+                const item = lastGeneratedLayout[index];
+
+                textEditor.value = item.line;
+                textEditor.style.font = `${item.style.fontItalic ? 'italic ' : ''}${item.style.fontBold ? 'bold ' : ''} ${item.fontSize}px "${item.style.fontFamily}"`;
+                textEditor.style.color = '#000000'; // 編集時は黒文字で固定
+                
+                textEditorContainer.style.top = `${item.position.y - 1}px`; // 枠線分を考慮
+                textEditorContainer.style.left = `${item.position.x - 1}px`;
+
+                if (item.isVertical) {
+                    textEditor.classList.remove('horizontal');
+                    textEditor.classList.add('vertical');
+                    textEditor.style.height = `${item.position.rect.height + 4}px`;
+                    textEditor.style.width = `${item.position.rect.width + 4}px`;
+                } else {
+                    textEditor.classList.remove('vertical');
+                    textEditor.classList.add('horizontal');
+                    textEditor.style.width = `${item.position.rect.width + 4}px`;
+                    textEditor.style.height = `${item.position.rect.height + 4}px`;
+                }
+
+                textEditorContainer.style.display = 'flex';
+                textEditor.focus();
+                textEditor.setSelectionRange(0, 0); // カーソルを先頭に設定
+            }
+
+            function stopEditing(saveChanges) {
+                if (!isEditing) return;
+                if (saveChanges) {
+                    const item = lastGeneratedLayout[selectedTextIndex];
+                    item.line = textEditor.value;
+                    
+                    // リサイズされた場合は、そのサイズを新しいrectとして保存
+                    item.position.rect.width = textEditor.clientWidth;
+                    item.position.rect.height = textEditor.clientHeight;
+                }
+                isEditing = false;
+                selectedTextIndex = -1;
+                textEditorContainer.style.display = 'none';
+                redrawCanvas();
+            }
+
+            textEditorOkBtn.addEventListener('click', () => stopEditing(true));
+            document.addEventListener('mousedown', (e) => {
+                if (isEditing && !textEditorContainer.contains(e.target)) {
+                    stopEditing(false); // 外側クリックはキャンセル
+                }
+            });
+
+
+            // --- ダウンロード、設定保存/読込 ---
             downloadBtn.addEventListener('click', () => {
                 const format = document.getElementById('output-format').value;
                 const link = document.createElement('a');
@@ -970,241 +973,119 @@
 
             // カラーピッカーUIの管理
             function setupColorPickers(type) {
-                const countInput = document.getElementById(`${type}-color-count`);
-                const modeRadios = document.querySelectorAll(`input[name="${type}-color-mode"]`);
-                const container = document.getElementById(`${type}-color-pickers`);
-                const defaultColors = type === 'font' ? ['#000000', '#FF0000', '#0000FF', '#008000', '#FFFF00'] : ['#FFFFFF', '#000000', '#FF0000', '#0000FF', '#008000'];
+                const countInput = document.getElementById(`${type}-count`);
+                const container = document.getElementById(`${type}-pickers`);
+                const modeRadios = document.querySelectorAll(`input[name="${type}-mode"]`);
+                const defaultColors = type === 'font-color' ? ['#000000', '#FF0000', '#0000FF', '#008000', '#FFFF00'] : ['#FFFFFF', '#000000', '#FF0000', '#0000FF', '#008000'];
 
-                // Create 5 pickers initially and permanently
+                container.innerHTML = '';
                 for (let i = 0; i < 5; i++) {
                     const wrapper = document.createElement('div');
-                    wrapper.className = 'color-picker-wrapper relative';
+                    wrapper.className = 'color-picker-wrapper';
                     const colorInput = document.createElement('input');
                     colorInput.type = 'color';
                     colorInput.value = defaultColors[i] || defaultColors[0];
                     colorInput.classList.add('save-state');
-                    colorInput.id = `${type}-color-${i}`;
+                    colorInput.id = `${type}-picker-${i}`;
                     wrapper.appendChild(colorInput);
                     container.appendChild(wrapper);
                 }
 
                 function updatePickerStates() {
+                    const isSpecify = document.querySelector(`input[name="${type}-mode"]:checked`).value === 'specify';
                     const count = parseInt(countInput.value, 10);
-                    const wrappers = container.querySelectorAll('.color-picker-wrapper');
-                    wrappers.forEach((wrapper, i) => {
+
+                    countInput.style.display = isSpecify ? 'inline-block' : 'none';
+
+                    container.querySelectorAll('.color-picker-wrapper').forEach((wrapper, i) => {
                         const picker = wrapper.querySelector('input[type="color"]');
-                        if (i >= count) {
-                            picker.disabled = true;
-                            wrapper.classList.add('is-disabled');
-                        } else {
-                            picker.disabled = false;
-                            wrapper.classList.remove('is-disabled');
-                        }
+                        const isDisabled = !isSpecify || i >= count;
+                        
+                        picker.disabled = isDisabled;
+                        wrapper.classList.toggle('is-disabled', isDisabled);
                     });
                 }
 
-                countInput.addEventListener('input', () => {
-                    updatePickerStates();
-                    saveStateToLocalStorage();
-                });
-                modeRadios.forEach(radio => radio.addEventListener('change', () => {
-                   const container = document.getElementById(`${type}-color-pickers`);
-                   const countEl = document.getElementById(`${type}-color-count`);
-                   if(document.querySelector(`input[name="${type}-color-mode"]:checked`).value === 'specify'){
-                       container.style.display = 'flex';
-                       countEl.style.display = 'flex';
-                   } else {
-                       container.style.display = 'none';
-                       countEl.style.display = 'none';
-                   }
-                }));
+                countInput.addEventListener('input', updatePickerStates);
+                modeRadios.forEach(radio => radio.addEventListener('change', updatePickerStates));
                 
-                // Make updatePickerStates accessible for loadSettings
-                container.updateStates = updatePickerStates;
-                updatePickerStates(); // Initial state
+                updatePickerStates();
             }
             
-            const settingsKey = 'randomTextPlacerSettings';
-
-            function saveStateToLocalStorage() {
+            // 設定の保存/読込
+            const settingsKey = 'randomTextPlacerSettings_v7';
+            function getSettingsToSave() {
                 const settings = {};
                 document.querySelectorAll('.save-state').forEach(el => {
+                    const key = el.id || el.name;
                     if (el.type === 'radio') {
-                        if (el.checked) {
-                            settings[el.name] = el.value;
-                        }
+                        if (el.checked) settings[key] = el.value;
                     } else if (el.type === 'checkbox') {
-                        settings[el.id] = el.checked;
+                        settings[key] = el.checked;
                     } else {
-                        settings[el.id] = el.value;
+                        settings[key] = el.value;
                     }
                 });
-                // Save color picker values
-                settings.fontColorPickers = Array.from(document.querySelectorAll('#font-color-pickers input')).map(el => el.value);
-                settings.fontStrokeColorPickers = Array.from(document.querySelectorAll('#font-stroke-color-pickers input')).map(el => el.value);
-                
-                localStorage.setItem(settingsKey, JSON.stringify(settings));
+                return settings;
             }
-
+            
             function applySettings(settings) {
-                 // Apply all other settings
                  Object.keys(settings).forEach(key => {
-                    if (key === 'fontColorPickers' || key === 'fontStrokeColorPickers') return;
-                    
                     const el = document.getElementById(key);
                     if (el) {
-                        if (el.type === 'checkbox') {
-                            el.checked = settings[key];
-                        } else {
-                            el.value = settings[key];
-                        }
-                        if (el.type === 'range') {
-                            el.dispatchEvent(new Event('input'));
-                        }
+                        if (el.type === 'checkbox') el.checked = settings[key];
+                        else el.value = settings[key];
+                        if (el.type === 'range') el.dispatchEvent(new Event('input'));
                     } else {
                         const radioGroup = document.querySelectorAll(`input[name="${key}"]`);
                         if (radioGroup.length > 0) {
-                            radioGroup.forEach(radio => {
-                                if (radio.value === settings[key]) {
-                                    radio.checked = true;
-                                }
-                            });
+                            radioGroup.forEach(radio => radio.checked = radio.value === settings[key]);
                         }
                     }
                 });
-                
-                // Now that pickers exist, set their values
-                if (settings.fontColorPickers) {
-                    const pickers = document.querySelectorAll('#font-color-pickers input');
-                    settings.fontColorPickers.forEach((color, i) => {
-                        if(pickers[i]) pickers[i].value = color;
-                    });
-                }
-                 if (settings.fontStrokeColorPickers) {
-                    const pickers = document.querySelectorAll('#font-stroke-color-pickers input');
-                    settings.fontStrokeColorPickers.forEach((color, i) => {
-                        if(pickers[i]) pickers[i].value = color;
-                    });
-                }
-                
-                // Manually trigger events to update UI state
-                document.getElementById('font-color-pickers').updateStates();
-                document.getElementById('font-stroke-color-pickers').updateStates();
-                document.querySelectorAll('input[name="font-color-mode"], input[name="font-stroke-color-mode"], input[name="text-opacity-mode"]').forEach(radio => {
-                    if (radio.checked) {
-                        radio.dispatchEvent(new Event('change'));
-                    }
+                // UI更新イベントを発火
+                document.querySelectorAll('input[name="font-color-mode"], input[name="font-stroke-color-mode"]').forEach(r => {
+                    r.dispatchEvent(new Event('change'));
+                    const countInput = document.getElementById(r.name.replace('-mode', '-count'));
+                    if (countInput) countInput.dispatchEvent(new Event('input'));
                 });
+                redrawCanvas();
             }
-
-            function loadStateFromLocalStorage() {
-                const savedSettings = localStorage.getItem(settingsKey);
-                if (savedSettings) {
-                    applySettings(JSON.parse(savedSettings));
-                }
-            }
-            
-            function addSaveStateListeners() {
-                document.querySelectorAll('.save-state').forEach(el => {
-                    el.removeEventListener('change', saveStateToLocalStorage); // Avoid duplicate listeners
-                    el.removeEventListener('input', saveStateToLocalStorage);
-                    el.addEventListener('change', saveStateToLocalStorage);
-                    if (el.type === 'range' || el.type === 'number') {
-                        el.addEventListener('input', saveStateToLocalStorage);
-                    }
-                });
-            }
-            
-            function resetSettings(containerId) {
-                const container = document.getElementById(containerId);
-                const defaults = {
-                    'canvas-width': 800, 'canvas-height': 600, 'bg-color': '#ffffff', 'bg-color-opacity': 0, 'bg-opacity': 1, 'bg-scale': 1,
-                    'font-size-min': 16, 'font-size-max': 48, 'text-opacity': 1, 'vertical-ratio': 50, 'wrap-text': false, 'font-color-count': 1, 'font-stroke-color-count': 1
-                };
-                container.querySelectorAll('.save-state').forEach(el => {
-                    const id = el.id;
-                    if (defaults[id] !== undefined) {
-                        if (el.type === 'checkbox') el.checked = defaults[id];
-                        else el.value = defaults[id];
-                        if (el.type === 'range' || el.type === 'number') el.dispatchEvent(new Event('input'));
-                    }
-                    // Reset radios
-                    if(el.name === 'text-opacity-mode') if(el.value === 'specify') el.checked = true;
-                    if(el.name === 'text-order') if(el.value === 'random') el.checked = true;
-                    if(el.name === 'text-placement') if(el.value === 'soft-avoid') el.checked = true;
-                    if(el.name === 'font-color-mode') if(el.value === 'random') el.checked = true;
-                    if(el.name === 'font-bold-mode' || el.name === 'font-italic-mode' || el.name === 'font-shadow-mode' || el.name === 'font-stroke-mode') if(el.value === 'random') el.checked = true;
-                    if(el.name === 'font-stroke-color-mode') if(el.value === 'random') el.checked = true;
-                });
-                saveStateToLocalStorage();
-                generateAndRedraw();
-            }
-
-            resetFieldSettingsBtn.addEventListener('click', () => resetSettings('field-settings'));
-            resetRandomSettingsBtn.addEventListener('click', () => resetSettings('random-settings'));
-            fontSelectAllBtn.addEventListener('click', () => {
-                document.querySelectorAll('input[name="font-choice"]').forEach(cb => cb.checked = true);
-                saveStateToLocalStorage();
-            });
-            fontDeselectAllBtn.addEventListener('click', () => {
-                document.querySelectorAll('input[name="font-choice"]').forEach(cb => cb.checked = false);
-                saveStateToLocalStorage();
-            });
 
             saveSettingsBtn.addEventListener('click', () => {
-                const settings = {};
-                document.querySelectorAll('.save-state').forEach(el => {
-                    if (el.type === 'radio') {
-                        if (el.checked) settings[el.name] = el.value;
-                    } else if (el.type === 'checkbox') {
-                        settings[el.id] = el.checked;
-                    } else {
-                        settings[el.id] = el.value;
-                    }
-                });
-                settings.fontColorPickers = Array.from(document.querySelectorAll('#font-color-pickers input')).map(el => el.value);
-                settings.fontStrokeColorPickers = Array.from(document.querySelectorAll('#font-stroke-color-pickers input')).map(el => el.value);
-                
+                const settings = getSettingsToSave();
                 const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
+                a.href = URL.createObjectURL(blob);
                 a.download = 'settings.json';
                 a.click();
-                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(a.href);
             });
 
-            loadSettingsBtn.addEventListener('click', () => {
-                settingsFileInput.click();
-            });
-
-            settingsFileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
+            loadSettingsBtn.addEventListener('click', () => settingsFileInput.click());
+            settingsFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = (re) => {
                     try {
-                        const settings = JSON.parse(e.target.result);
-                        applySettings(settings);
-                        saveStateToLocalStorage();
-                        generateAndRedraw();
-                    } catch (err) {
-                        console.error("Error parsing settings file:", err);
-                        alert("設定ファイルの読み込みに失敗しました。");
-                    }
+                        applySettings(JSON.parse(re.target.result));
+                    } catch (err) { console.error("Error parsing settings file:", err); }
                 };
                 reader.readAsText(file);
-                event.target.value = ''; // Reset file input
+                e.target.value = '';
             });
 
-            // 初期化
+            // --- 初期化処理 ---
             populateFontList();
-            setupColorPickers('font');
-            setupColorPickers('font-stroke');
-            loadStateFromLocalStorage();
-            addSaveStateListeners();
+            setupColorPickers('font-color');
+            setupColorPickers('font-stroke-color');
             switchLanguage('ja');
-            generateAndRedraw();
+            redrawCanvas();
+
+            // フォント全選択/全解除
+            fontSelectAllBtn.addEventListener('click', () => document.querySelectorAll('#font-selection-list input').forEach(cb => cb.checked = true));
+            fontDeselectAllBtn.addEventListener('click', () => document.querySelectorAll('#font-selection-list input').forEach(cb => cb.checked = false));
         });
     </script>
 </body>
